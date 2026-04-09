@@ -416,3 +416,52 @@ FodyWeavers.xsd
 *.msix
 *.msm
 *.msp
+
+
+# ======= .NET / C# =======
+bin/
+obj/
+*.dll
+*.exe
+*.pdb
+*.user
+*.suo
+*.vs/
+*.sln.docstates
+packages/
+*.nupkg
+project.lock.json
+*.nuget.props
+*.nuget.targets
+
+# ======= Node / React =======
+node_modules/
+dist/
+build/
+.env
+.env.local
+.env.production
+
+# ======= Database =======
+*.mdf
+*.ldf
+
+# ======= IDE =======
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# ======= OS =======
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ======= Secrets =======
+appsettings.Development.json
+*.env
+secrets/
+
+# ======= Logs =======
+*.log
+logs/
