@@ -1,12 +1,13 @@
 import { Link } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
 import { useProducts } from '../../hooks/useProducts'
+import { useTransactions } from '../../hooks/useTransactions'
 import { formatCurrency } from '../../lib/utils'
-import transactionsData from '../../mocks/transactions.json'
 
 const ReportsPage = () => {
   const { user } = useAuth()
   const { products } = useProducts()
+  const { transactions, getSalesByUser, getPurchasesByUser, getDepositsByUser } = useTransactions()
 
   if (!user) {
     return (
@@ -19,10 +20,9 @@ const ReportsPage = () => {
   }
 
   const myProducts = products.filter((p) => p.sellerId === user.id)
-  const allPurchases = transactionsData.filter((t) => t.type === 'PURCHASE')
-  const mySales = allPurchases.filter((t) => t.sellerId === user.id)
-  const myPurchases = allPurchases.filter((t) => t.buyerId === user.id)
-  const myDeposits = transactionsData.filter((t) => t.type === 'DEPOSIT' && t.userId === user.id)
+  const mySales = getSalesByUser(user.id)
+  const myPurchases = getPurchasesByUser(user.id)
+  const myDeposits = getDepositsByUser(user.id)
 
   const totalRevenue = mySales.reduce((sum, t) => sum + t.amount, 0)
   const totalSpent = myPurchases.reduce((sum, t) => sum + t.amount, 0)
@@ -36,8 +36,8 @@ const ReportsPage = () => {
       icon: '📜',
       link: '/reports/transactions',
       stats: [
-        { label: 'Total Transactions', value: transactionsData.length },
-        { label: 'Total Volume', value: formatCurrency(transactionsData.reduce((s, t) => s + t.amount, 0)) },
+        { label: 'Total Transactions', value: transactions.length },
+        { label: 'Total Volume', value: formatCurrency(transactions.reduce((s, t) => s + t.amount, 0)) },
       ],
       color: 'from-blue-500 to-blue-600',
     },
@@ -67,13 +67,11 @@ const ReportsPage = () => {
 
   return (
     <div>
-      {/* Header */}
       <div className="mb-6">
         <h1 className="text-3xl font-bold text-gray-900">Reports Dashboard</h1>
         <p className="text-gray-500 mt-1">View detailed reports about your marketplace activity</p>
       </div>
 
-      {/* Overview Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <div className="bg-white rounded-lg border border-gray-200 p-5">
           <div className="flex items-center gap-3 mb-2">
@@ -105,7 +103,6 @@ const ReportsPage = () => {
         </div>
       </div>
 
-      {/* Report Cards */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
         {reportCards.map((card) => (
           <Link
@@ -127,15 +124,12 @@ const ReportsPage = () => {
                   </div>
                 ))}
               </div>
-              <div className="mt-4 text-blue-600 font-medium text-sm flex items-center gap-1">
-                View Full Report →
-              </div>
+              <div className="mt-4 text-blue-600 font-medium text-sm">View Full Report →</div>
             </div>
           </Link>
         ))}
       </div>
 
-      {/* Quick Summary Table */}
       <div className="bg-white rounded-lg border border-gray-200 p-6">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">Financial Summary</h2>
         <table className="w-full">

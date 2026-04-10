@@ -40,6 +40,12 @@ const menuSections = [
       { label: 'Purchases', path: '/reports/purchases', icon: '🛒' },
     ],
   },
+  {
+    title: 'System',
+    items: [
+      { label: 'Settings', path: '/settings', icon: '⚙️' },
+    ],
+  },
 ]
 
 const Sidebar = () => {
@@ -49,7 +55,6 @@ const Sidebar = () => {
 
   return (
     <>
-      {/* Mobile Toggle Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="lg:hidden fixed bottom-4 right-4 z-50 bg-blue-600 text-white w-12 h-12 rounded-full shadow-lg flex items-center justify-center text-xl hover:bg-blue-700 transition"
@@ -57,7 +62,6 @@ const Sidebar = () => {
         {isOpen ? '✕' : '☰'}
       </button>
 
-      {/* Mobile Overlay */}
       {isOpen && (
         <div
           className="lg:hidden fixed inset-0 bg-black/50 z-30"
@@ -65,7 +69,6 @@ const Sidebar = () => {
         />
       )}
 
-      {/* Sidebar */}
       <aside
         className={
           'bg-white border-r border-gray-200 z-40 transition-all duration-300 ' +
@@ -74,7 +77,6 @@ const Sidebar = () => {
         }
       >
         <div className="h-full overflow-y-auto p-4 pt-2">
-          {/* User Info (Mobile) */}
           {user && (
             <div className="lg:hidden bg-blue-50 rounded-lg p-3 mb-4">
               <p className="font-medium text-blue-900 text-sm">{user.fullName}</p>

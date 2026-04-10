@@ -10,6 +10,14 @@ const LoginPage = () => {
   const { login } = useAuth()
   const navigate = useNavigate()
 
+  const testAccounts = [
+    { email: 'john@example.com', role: 'Seller - Electronics', name: 'John Doe' },
+    { email: 'jane@example.com', role: 'Seller - Books', name: 'Jane Smith' },
+    { email: 'bob@example.com', role: 'Seller - Sports', name: 'Bob Wilson' },
+    { email: 'sarah@example.com', role: 'Customer', name: 'Sarah Johnson' },
+    { email: 'mike@example.com', role: 'Customer', name: 'Mike Chen' },
+  ]
+
   const handleSubmit = (e) => {
     e.preventDefault()
     setError('')
@@ -30,32 +38,31 @@ const LoginPage = () => {
     setLoading(false)
   }
 
+  const quickLogin = (testEmail) => {
+    setEmail(testEmail)
+    setPassword('password123')
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        {/* Logo */}
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-blue-600">MarketPlace</h1>
+          <h1 className="text-4xl font-bold text-blue-600">🛒 MarketPlace</h1>
           <p className="text-gray-500 mt-2">Welcome back! Login to your account</p>
         </div>
 
-        {/* Card */}
         <div className="bg-white rounded-2xl shadow-lg p-8">
           <h2 className="text-2xl font-bold text-gray-900 mb-6">Login</h2>
 
-          {/* Error Message */}
           {error && (
             <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4 text-sm">
               {error}
             </div>
           )}
 
-          {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Email Address
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
               <input
                 type="email"
                 value={email}
@@ -66,9 +73,7 @@ const LoginPage = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Password
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
               <input
                 type="password"
                 value={password}
@@ -87,19 +92,37 @@ const LoginPage = () => {
             </button>
           </form>
 
-          {/* Test Credentials */}
-          <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-            <p className="text-xs font-medium text-gray-500 mb-2">Test Credentials:</p>
-            <p className="text-xs text-gray-600">Email: john@example.com</p>
-            <p className="text-xs text-gray-600">Password: password123</p>
+          <div className="mt-6">
+            <p className="text-xs font-medium text-gray-500 mb-3">Quick Login (click to fill):</p>
+            <div className="space-y-2">
+              {testAccounts.map((acc) => (
+                <button
+                  key={acc.email}
+                  onClick={() => quickLogin(acc.email)}
+                  className="w-full flex items-center justify-between px-3 py-2 bg-gray-50 hover:bg-blue-50 rounded-lg text-left transition text-sm"
+                >
+                  <div>
+                    <span className="font-medium text-gray-900">{acc.name}</span>
+                    <span className="text-gray-400 mx-2">·</span>
+                    <span className="text-gray-500">{acc.email}</span>
+                  </div>
+                  <span className={
+                    'text-xs px-2 py-0.5 rounded-full font-medium ' +
+                    (acc.role.includes('Customer')
+                      ? 'bg-purple-100 text-purple-700'
+                      : 'bg-blue-100 text-blue-700')
+                  }>
+                    {acc.role}
+                  </span>
+                </button>
+              ))}
+            </div>
+            <p className="text-xs text-gray-400 mt-2">Password for all: password123</p>
           </div>
 
-          {/* Register Link */}
           <p className="text-center text-sm text-gray-500 mt-6">
             Do not have an account?{' '}
-            <Link to="/register" className="text-blue-600 font-medium hover:underline">
-              Register here
-            </Link>
+            <Link to="/register" className="text-blue-600 font-medium hover:underline">Register here</Link>
           </p>
         </div>
       </div>

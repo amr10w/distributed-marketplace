@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useProducts } from '../../hooks/useProducts'
 import { useAuth } from '../../hooks/useAuth'
+import { useToast } from '../../hooks/useToast'
 import { PRODUCT_CATEGORIES } from '../../lib/constants'
 
 const AddEditItemPage = () => {
@@ -9,6 +10,7 @@ const AddEditItemPage = () => {
   const navigate = useNavigate()
   const { user } = useAuth()
   const { getProductById, addProduct, updateProduct } = useProducts()
+  const toast = useToast()
   const isEditing = Boolean(id)
 
   const [formData, setFormData] = useState({
@@ -21,7 +23,7 @@ const AddEditItemPage = () => {
     image: '',
   })
   const [error, setError] = useState('')
-  const [success, setSuccess] = useState('')
+  const [imagePreview, setImagePreview] = useState('')
 
   useEffect(() => {
     if (isEditing) {
@@ -36,6 +38,7 @@ const AddEditItemPage = () => {
           category: product.category,
           image: product.image,
         })
+        setImagePreview(product.image)
       }
     }
   }, [id, isEditing, getProductById])
@@ -52,15 +55,18 @@ const AddEditItemPage = () => {
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value })
+    if (e.target.name === 'image') {
+      setImagePreview(e.target.value)
+    }
   }
 
   const handleSubmit = (e) => {
     e.preventDefault()
     setError('')
-    setSuccess('')
 
     if (!formData.name || !formData.brand || !formData.price || !formData.quantity) {
       setError('Please fill in all required fields')
+      toast.error('Please fill in all required fields')
       return
     }
 
@@ -89,10 +95,11 @@ const AddEditItemPage = () => {
 
     if (isEditing) {
       updateProduct(id, productData)
-      setSuccess('Product updated successfully!')
+      toast.success('Product updated successfully!')
+      navigate('/seller/items')
     } else {
       addProduct(productData)
-      setSuccess('Product added successfully!')
+      toast.success('Product added successfully!')
       setFormData({
         name: '',
         brand: '',
@@ -102,12 +109,12 @@ const AddEditItemPage = () => {
         category: 'Electronics',
         image: '',
       })
+      setImagePreview('')
     }
   }
 
   return (
-    <div className="max-w-2xl mx-auto">
-      {/* Back Button */}
+    <div className="max-w-2xl mx-auto animate-fade-in">
       <button
         onClick={() => navigate('/seller/items')}
         className="text-blue-600 hover:text-blue-800 font-medium mb-6 flex items-center gap-1"
@@ -120,22 +127,11 @@ const AddEditItemPage = () => {
           {isEditing ? 'Edit Item' : 'Add New Item'}
         </h1>
 
-        {/* Error */}
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4 text-sm">
-            {error}
-          </div>
-        )}
-
-        {/* Success */}
-        {success && (
-          <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg mb-4 text-sm">
-            {success}
-          </div>
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4 text-sm">{error}</div>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-5">
-          {/* Name */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Product Name <span className="text-red-500">*</span>
@@ -150,7 +146,6 @@ const AddEditItemPage = () => {
             />
           </div>
 
-          {/* Brand */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Brand <span className="text-red-500">*</span>
@@ -165,11 +160,8 @@ const AddEditItemPage = () => {
             />
           </div>
 
-          {/* Category */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Category
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
             <select
               name="category"
               value={formData.category}
@@ -182,7 +174,6 @@ const AddEditItemPage = () => {
             </select>
           </div>
 
-          {/* Price & Quantity Row */}
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -215,11 +206,8 @@ const AddEditItemPage = () => {
             </div>
           </div>
 
-          {/* Description */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Description
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
             <textarea
               name="description"
               value={formData.description}
@@ -230,11 +218,8 @@ const AddEditItemPage = () => {
             />
           </div>
 
-          {/* Image URL */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Image URL
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Image URL</label>
             <input
               type="text"
               name="image"
@@ -244,9 +229,20 @@ const AddEditItemPage = () => {
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
             />
             <p className="text-xs text-gray-400 mt-1">Leave empty for auto-generated image</p>
+
+            {imagePreview && (
+              <div className="mt-3">
+                <p className="text-sm font-medium text-gray-700 mb-2">Preview:</p>
+                <img
+                  src={imagePreview}
+                  alt="Preview"
+                  className="w-full h-48 object-cover rounded-lg border border-gray-200"
+                  onError={(e) => { e.target.style.display = 'none' }}
+                />
+              </div>
+            )}
           </div>
 
-          {/* Buttons */}
           <div className="flex gap-3 pt-2">
             <button
               type="submit"
