@@ -1,22 +1,67 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useProducts } from '../../hooks/useProducts'
+import { useAuth } from '../../hooks/useAuth'
 import ProductCard from '../../components/common/ProductCard'
-import LoadingSpinner from '../../components/common/LoadingSpinner'
+import SkeletonCard from '../../components/common/SkeletonCard'
+import Pagination from '../../components/common/Pagination'
+import SearchFilters from '../../components/common/SearchFilters'
+
+const ITEMS_PER_PAGE = 8
 
 const BrowsePage = () => {
-  const { products, loading } = useProducts()
+  const { products } = useProducts()
+  const { user } = useAuth()
   const [activeCategory, setActiveCategory] = useState('All')
   const [sortBy, setSortBy] = useState('newest')
+  const [loading, setLoading] = useState(true)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [advancedFilters, setAdvancedFilters] = useState({
+    category: 'All',
+    minPrice: '',
+    maxPrice: '',
+    inStockOnly: false,
+    seller: '',
+  })
 
-  if (loading) return <LoadingSpinner />
+  useEffect(() => {
+    const timer = setTimeout(() => setLoading(false), 800)
+    return () => clearTimeout(timer)
+  }, [])
 
-  const availableProducts = products.filter((p) => p.status === 'AVAILABLE' || p.quantity > 0)
+  let availableProducts = products.filter(
+    (p) => (p.status === 'AVAILABLE' || p.quantity > 0)
+  )
+
+  if (user) {
+    availableProducts = availableProducts.filter((p) => p.sellerId !== user.id)
+  }
 
   const categories = ['All', ...new Set(products.map((p) => p.category))]
 
   let filtered = activeCategory === 'All'
     ? availableProducts
     : availableProducts.filter((p) => p.category === activeCategory)
+
+  if (advancedFilters.category !== 'All') {
+    filtered = filtered.filter((p) => p.category === advancedFilters.category)
+  }
+  if (advancedFilters.minPrice !== '') {
+    filtered = filtered.filter((p) => p.price >= parseFloat(advancedFilters.minPrice))
+  }
+  if (advancedFilters.maxPrice !== '') {
+    filtered = filtered.filter((p) => p.price <= parseFloat(advancedFilters.maxPrice))
+  }
+  if (advancedFilters.inStockOnly) {
+    filtered = filtered.filter((p) => p.quantity > 0)
+  }
+  if (advancedFilters.seller !== '') {
+    const sellerLower = advancedFilters.seller.toLowerCase()
+    filtered = filtered.filter(
+      (p) =>
+        p.sellerName.toLowerCase().includes(sellerLower) ||
+        p.storeName.toLowerCase().includes(sellerLower)
+    )
+  }
 
   filtered = [...filtered].sort((a, b) => {
     if (sortBy === 'newest') return new Date(b.createdAt) - new Date(a.createdAt)
@@ -27,14 +72,35 @@ const BrowsePage = () => {
     return 0
   })
 
+  const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE)
+  const paginatedProducts = filtered.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  )
+
+  const handlePageChange = (page) => {
+    setCurrentPage(page)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  const handleCategoryChange = (cat) => {
+    setActiveCategory(cat)
+    setCurrentPage(1)
+  }
+
+  const handleFiltersChange = (filters) => {
+    setAdvancedFilters(filters)
+    setCurrentPage(1)
+  }
+
   return (
-    <div>
-      {/* Header */}
+    <div className="animate-fade-in">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Browse Products</h1>
           <p className="text-gray-500 mt-1">
-            Discover {filtered.length} products from our marketplace
+            {filtered.length} product{filtered.length !== 1 ? 's' : ''} available
+            {user ? ' from other sellers' : ''}
           </p>
         </div>
         <select
@@ -50,12 +116,11 @@ const BrowsePage = () => {
         </select>
       </div>
 
-      {/* Category Filter */}
-      <div className="flex gap-2 mb-6 flex-wrap">
+      <div className="flex gap-2 mb-4 flex-wrap">
         {categories.map((cat) => (
           <button
             key={cat}
-            onClick={() => setActiveCategory(cat)}
+            onClick={() => handleCategoryChange(cat)}
             className={
               'px-4 py-2 rounded-full text-sm font-medium transition ' +
               (activeCategory === cat
@@ -68,30 +133,52 @@ const BrowsePage = () => {
         ))}
       </div>
 
-      {/* Product Grid */}
-      {filtered.length > 0 ? (
+      <SearchFilters
+        onApplyFilters={handleFiltersChange}
+        totalResults={filtered.length}
+      />
+
+      {loading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {filtered.map((product) => (
-            <ProductCard key={product.id} product={product} />
+          {Array.from({ length: ITEMS_PER_PAGE }).map((_, i) => (
+            <SkeletonCard key={i} />
           ))}
         </div>
+      ) : paginatedProducts.length > 0 ? (
+        <>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {paginatedProducts.map((product) => (
+              <ProductCard key={product.id} product={product} />
+            ))}
+          </div>
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={handlePageChange}
+          />
+        </>
       ) : (
         <div className="text-center py-12 bg-white rounded-lg border border-gray-200">
           <div className="text-6xl mb-4">🔍</div>
           <h3 className="text-xl font-semibold text-gray-700 mb-2">No products found</h3>
           <p className="text-gray-500">
-            {activeCategory !== 'All'
-              ? 'No products in this category. Try selecting "All"'
-              : 'No products available yet'}
+            Try adjusting your filters or search criteria
           </p>
-          {activeCategory !== 'All' && (
-            <button
-              onClick={() => setActiveCategory('All')}
-              className="mt-4 text-blue-600 hover:underline font-medium"
-            >
-              Show all products
-            </button>
-          )}
+          <button
+            onClick={() => {
+              setActiveCategory('All')
+              setAdvancedFilters({
+                category: 'All',
+                minPrice: '',
+                maxPrice: '',
+                inStockOnly: false,
+                seller: '',
+              })
+            }}
+            className="mt-4 text-blue-600 hover:underline font-medium"
+          >
+            Clear all filters
+          </button>
         </div>
       )}
     </div>

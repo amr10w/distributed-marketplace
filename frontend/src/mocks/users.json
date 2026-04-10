@@ -28,5 +28,25 @@
     "balance": 1500.00,
     "storeName": "Bob's Sports",
     "createdAt": "2025-03-10T09:15:00Z"
+  },
+  {
+    "id": 4,
+    "username": "sarah_customer",
+    "email": "sarah@example.com",
+    "password": "password123",
+    "fullName": "Sarah Johnson",
+    "balance": 10000.00,
+    "storeName": "",
+    "createdAt": "2025-03-20T11:00:00Z"
+  },
+  {
+    "id": 5,
+    "username": "mike_buyer",
+    "email": "mike@example.com",
+    "password": "password123",
+    "fullName": "Mike Chen",
+    "balance": 7500.00,
+    "storeName": "",
+    "createdAt": "2025-03-25T09:30:00Z"
   }
 ]

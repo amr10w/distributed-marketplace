@@ -1,13 +1,18 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
+import { useTransactions } from '../../hooks/useTransactions'
 import { formatCurrency, formatDate } from '../../lib/utils'
-import transactionsData from '../../mocks/transactions.json'
+import Pagination from '../../components/common/Pagination'
+
+const ITEMS_PER_PAGE = 10
 
 const TransactionHistoryPage = () => {
   const { user } = useAuth()
+  const { getTransactionsByUser } = useTransactions()
   const [filter, setFilter] = useState('all')
   const [sortOrder, setSortOrder] = useState('newest')
+  const [currentPage, setCurrentPage] = useState(1)
 
   if (!user) {
     return (
@@ -19,12 +24,7 @@ const TransactionHistoryPage = () => {
     )
   }
 
-  const myTransactions = transactionsData.filter(
-    (t) =>
-      t.buyerId === user.id ||
-      t.sellerId === user.id ||
-      t.userId === user.id
-  )
+  const myTransactions = getTransactionsByUser(user.id)
 
   const filteredTransactions = myTransactions.filter((t) => {
     if (filter === 'all') return true
@@ -42,6 +42,12 @@ const TransactionHistoryPage = () => {
     return 0
   })
 
+  const totalPages = Math.ceil(sortedTransactions.length / ITEMS_PER_PAGE)
+  const paginatedTransactions = sortedTransactions.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  )
+
   const totalIn = myTransactions
     .filter((t) =>
       (t.type === 'PURCHASE' && t.sellerId === user.id) ||
@@ -55,44 +61,26 @@ const TransactionHistoryPage = () => {
 
   const getTransactionDetails = (t) => {
     if (t.type === 'DEPOSIT') {
-      return {
-        icon: '💳',
-        iconBg: 'bg-blue-100',
-        label: 'Deposit',
-        description: 'Added funds to account',
-        amountColor: 'text-green-600',
-        amountPrefix: '+',
-      }
+      return { icon: '💳', iconBg: 'bg-blue-100', label: 'Deposit', description: 'Added funds to account', amountColor: 'text-green-600', amountPrefix: '+' }
     }
     if (t.buyerId === user.id) {
-      return {
-        icon: '🛒',
-        iconBg: 'bg-red-100',
-        label: 'Purchase',
-        description: 'Bought ' + t.productName + ' from ' + t.sellerName,
-        amountColor: 'text-red-600',
-        amountPrefix: '-',
-      }
+      return { icon: '🛒', iconBg: 'bg-red-100', label: 'Purchase', description: 'Bought ' + (t.quantity || 1) + 'x ' + t.productName + ' from ' + t.sellerName, amountColor: 'text-red-600', amountPrefix: '-' }
     }
-    return {
-      icon: '💰',
-      iconBg: 'bg-green-100',
-      label: 'Sale',
-      description: 'Sold ' + t.productName + ' to ' + t.buyerName,
-      amountColor: 'text-green-600',
-      amountPrefix: '+',
-    }
+    return { icon: '💰', iconBg: 'bg-green-100', label: 'Sale', description: 'Sold ' + (t.quantity || 1) + 'x ' + t.productName + ' to ' + t.buyerName, amountColor: 'text-green-600', amountPrefix: '+' }
+  }
+
+  const handleFilterChange = (newFilter) => {
+    setFilter(newFilter)
+    setCurrentPage(1)
   }
 
   return (
-    <div>
-      {/* Header */}
+    <div className="animate-fade-in">
       <div className="mb-6">
         <h1 className="text-3xl font-bold text-gray-900">Transaction History</h1>
         <p className="text-gray-500 mt-1">View all your marketplace transactions</p>
       </div>
 
-      {/* Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
         <div className="bg-white rounded-lg border border-gray-200 p-4">
           <p className="text-sm text-gray-500">Total Transactions</p>
@@ -108,9 +96,8 @@ const TransactionHistoryPage = () => {
         </div>
       </div>
 
-      {/* Filters */}
       <div className="flex flex-wrap items-center gap-4 mb-6">
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           {[
             { key: 'all', label: 'All' },
             { key: 'purchases', label: 'Purchases' },
@@ -119,7 +106,7 @@ const TransactionHistoryPage = () => {
           ].map((f) => (
             <button
               key={f.key}
-              onClick={() => setFilter(f.key)}
+              onClick={() => handleFilterChange(f.key)}
               className={
                 'px-4 py-2 rounded-full text-sm font-medium transition ' +
                 (filter === f.key
@@ -131,10 +118,9 @@ const TransactionHistoryPage = () => {
             </button>
           ))}
         </div>
-
         <select
           value={sortOrder}
-          onChange={(e) => setSortOrder(e.target.value)}
+          onChange={(e) => { setSortOrder(e.target.value); setCurrentPage(1) }}
           className="px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
           <option value="newest">Newest First</option>
@@ -144,54 +130,56 @@ const TransactionHistoryPage = () => {
         </select>
       </div>
 
-      {/* Transaction List */}
-      {sortedTransactions.length > 0 ? (
-        <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-          {sortedTransactions.map((t, index) => {
-            const details = getTransactionDetails(t)
-            return (
-              <div
-                key={t.id}
-                className={
-                  'flex items-center justify-between px-6 py-4 hover:bg-gray-50 ' +
-                  (index < sortedTransactions.length - 1 ? 'border-b border-gray-100' : '')
-                }
-              >
-                <div className="flex items-center gap-4">
-                  <div className={'w-12 h-12 rounded-full flex items-center justify-center text-xl ' + details.iconBg}>
-                    {details.icon}
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <p className="font-medium text-gray-900">{details.label}</p>
-                      <span className={
-                        'text-xs px-2 py-0.5 rounded-full font-medium ' +
-                        (t.status === 'COMPLETED'
-                          ? 'bg-green-100 text-green-700'
-                          : 'bg-yellow-100 text-yellow-700')
-                      }>
-                        {t.status}
-                      </span>
+      {paginatedTransactions.length > 0 ? (
+        <>
+          <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+            {paginatedTransactions.map((t, index) => {
+              const details = getTransactionDetails(t)
+              return (
+                <div
+                  key={t.id}
+                  className={
+                    'flex items-center justify-between px-6 py-4 hover:bg-gray-50 ' +
+                    (index < paginatedTransactions.length - 1 ? 'border-b border-gray-100' : '')
+                  }
+                >
+                  <div className="flex items-center gap-4">
+                    <div className={'w-12 h-12 rounded-full flex items-center justify-center text-xl ' + details.iconBg}>
+                      {details.icon}
                     </div>
-                    <p className="text-sm text-gray-500">{details.description}</p>
-                    <p className="text-xs text-gray-400 mt-0.5">{formatDate(t.createdAt)}</p>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <p className="font-medium text-gray-900">{details.label}</p>
+                        <span className={
+                          'text-xs px-2 py-0.5 rounded-full font-medium ' +
+                          (t.status === 'COMPLETED' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700')
+                        }>
+                          {t.status}
+                        </span>
+                      </div>
+                      <p className="text-sm text-gray-500">{details.description}</p>
+                      <p className="text-xs text-gray-400 mt-0.5">{formatDate(t.createdAt)}</p>
+                    </div>
                   </div>
+                  <span className={'text-lg font-semibold ' + details.amountColor}>
+                    {details.amountPrefix}{formatCurrency(t.amount)}
+                  </span>
                 </div>
-                <span className={'text-lg font-semibold ' + details.amountColor}>
-                  {details.amountPrefix}{formatCurrency(t.amount)}
-                </span>
-              </div>
-            )
-          })}
-        </div>
+              )
+            })}
+          </div>
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={(page) => { setCurrentPage(page); window.scrollTo({ top: 0, behavior: 'smooth' }) }}
+          />
+        </>
       ) : (
         <div className="text-center py-12 bg-white rounded-lg border border-gray-200">
           <div className="text-6xl mb-4">📜</div>
           <h3 className="text-xl font-semibold text-gray-700 mb-2">No transactions found</h3>
           <p className="text-gray-500">
-            {filter !== 'all'
-              ? 'Try selecting a different filter'
-              : 'Start by depositing funds or making a purchase'}
+            {filter !== 'all' ? 'Try selecting a different filter' : 'Start by depositing funds or making a purchase'}
           </p>
         </div>
       )}

@@ -2,6 +2,7 @@ import { Outlet } from 'react-router-dom'
 import Navbar from './Navbar'
 import Sidebar from './Sidebar'
 import Footer from './Footer'
+import Breadcrumbs from '../common/Breadcrumbs'
 
 const MainLayout = () => {
   return (
@@ -11,6 +12,7 @@ const MainLayout = () => {
         <Sidebar />
         <main className="flex-1 p-4 lg:p-6 overflow-x-hidden">
           <div className="max-w-7xl mx-auto">
+            <Breadcrumbs />
             <Outlet />
           </div>
         </main>

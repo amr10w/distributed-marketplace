@@ -1,11 +1,12 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
+import { useTransactions } from '../../hooks/useTransactions'
 import { formatCurrency, formatDate } from '../../lib/utils'
-import transactionsData from '../../mocks/transactions.json'
 
 const TransactionReport = () => {
   const { user } = useAuth()
+  const { transactions } = useTransactions()
   const navigate = useNavigate()
   const [typeFilter, setTypeFilter] = useState('all')
   const [statusFilter, setStatusFilter] = useState('all')
@@ -21,12 +22,11 @@ const TransactionReport = () => {
     )
   }
 
-  let filtered = [...transactionsData]
+  let filtered = [...transactions]
 
   if (typeFilter !== 'all') {
     filtered = filtered.filter((t) => t.type === typeFilter)
   }
-
   if (statusFilter !== 'all') {
     filtered = filtered.filter((t) => t.status === statusFilter)
   }
@@ -42,7 +42,6 @@ const TransactionReport = () => {
 
   return (
     <div>
-      {/* Back */}
       <button
         onClick={() => navigate('/reports')}
         className="text-blue-600 hover:text-blue-800 font-medium mb-6 flex items-center gap-1"
@@ -50,13 +49,11 @@ const TransactionReport = () => {
         ← Back to Reports
       </button>
 
-      {/* Header */}
       <div className="mb-6">
         <h1 className="text-3xl font-bold text-gray-900">Transaction Report</h1>
         <p className="text-gray-500 mt-1">Complete overview of all marketplace transactions</p>
       </div>
 
-      {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-6">
         <div className="bg-white rounded-lg border border-gray-200 p-4">
           <p className="text-sm text-gray-500">Total Transactions</p>
@@ -76,7 +73,6 @@ const TransactionReport = () => {
         </div>
       </div>
 
-      {/* Filters */}
       <div className="bg-white rounded-lg border border-gray-200 p-4 mb-6">
         <div className="flex flex-wrap items-center gap-4">
           <div>
@@ -101,7 +97,6 @@ const TransactionReport = () => {
               <option value="all">All Status</option>
               <option value="COMPLETED">Completed</option>
               <option value="PENDING">Pending</option>
-              <option value="CANCELLED">Cancelled</option>
             </select>
           </div>
           <div>
@@ -118,71 +113,60 @@ const TransactionReport = () => {
         </div>
       </div>
 
-      {/* Table */}
       {filtered.length > 0 ? (
         <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-          <table className="w-full">
-            <thead className="bg-gray-50 border-b border-gray-200">
-              <tr>
-                <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">ID</th>
-                <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Type</th>
-                <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Details</th>
-                <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Amount</th>
-                <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Status</th>
-                <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Date</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {filtered.map((t) => (
-                <tr key={t.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 text-sm text-gray-500">#{t.id}</td>
-                  <td className="px-6 py-4">
-                    <span
-                      className={
-                        'text-xs px-2 py-1 rounded-full font-medium ' +
-                        (t.type === 'PURCHASE'
-                          ? 'bg-blue-100 text-blue-700'
-                          : 'bg-green-100 text-green-700')
-                      }
-                    >
-                      {t.type}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4">
-                    {t.type === 'PURCHASE' ? (
-                      <div>
-                        <p className="text-sm font-medium text-gray-900">{t.productName}</p>
-                        <p className="text-xs text-gray-500">{t.buyerName} → {t.sellerName}</p>
-                      </div>
-                    ) : (
-                      <div>
-                        <p className="text-sm font-medium text-gray-900">Deposit</p>
-                        <p className="text-xs text-gray-500">by {t.userName}</p>
-                      </div>
-                    )}
-                  </td>
-                  <td className="px-6 py-4 font-medium text-gray-900">
-                    {formatCurrency(t.amount)}
-                  </td>
-                  <td className="px-6 py-4">
-                    <span
-                      className={
-                        'text-xs px-2 py-1 rounded-full font-medium ' +
-                        (t.status === 'COMPLETED'
-                          ? 'bg-green-100 text-green-700'
-                          : t.status === 'PENDING'
-                          ? 'bg-yellow-100 text-yellow-700'
-                          : 'bg-red-100 text-red-700')
-                      }
-                    >
-                      {t.status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-sm text-gray-500">{formatDate(t.createdAt)}</td>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-50 border-b border-gray-200">
+                <tr>
+                  <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">ID</th>
+                  <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Type</th>
+                  <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Details</th>
+                  <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Amount</th>
+                  <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Status</th>
+                  <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Date</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                {filtered.map((t) => (
+                  <tr key={t.id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 text-sm text-gray-500">#{t.id}</td>
+                    <td className="px-6 py-4">
+                      <span className={
+                        'text-xs px-2 py-1 rounded-full font-medium ' +
+                        (t.type === 'PURCHASE' ? 'bg-blue-100 text-blue-700' : 'bg-green-100 text-green-700')
+                      }>
+                        {t.type}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      {t.type === 'PURCHASE' ? (
+                        <div>
+                          <p className="text-sm font-medium text-gray-900">{t.productName}</p>
+                          <p className="text-xs text-gray-500">{t.buyerName} → {t.sellerName}</p>
+                        </div>
+                      ) : (
+                        <div>
+                          <p className="text-sm font-medium text-gray-900">Deposit</p>
+                          <p className="text-xs text-gray-500">by {t.userName}</p>
+                        </div>
+                      )}
+                    </td>
+                    <td className="px-6 py-4 font-medium text-gray-900">{formatCurrency(t.amount)}</td>
+                    <td className="px-6 py-4">
+                      <span className={
+                        'text-xs px-2 py-1 rounded-full font-medium ' +
+                        (t.status === 'COMPLETED' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700')
+                      }>
+                        {t.status}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-500">{formatDate(t.createdAt)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       ) : (
         <div className="text-center py-12 bg-white rounded-lg border border-gray-200">
