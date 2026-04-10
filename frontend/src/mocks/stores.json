@@ -1,0 +1,29 @@
+[
+  {
+    "id": 1,
+    "ownerId": 1,
+    "ownerName": "John Doe",
+    "storeName": "John's Electronics",
+    "description": "Premium electronics and gadgets store",
+    "productCount": 4,
+    "createdAt": "2025-01-15T10:00:00Z"
+  },
+  {
+    "id": 2,
+    "ownerId": 2,
+    "ownerName": "Jane Smith",
+    "storeName": "Jane's Books",
+    "description": "Wide selection of books for all ages",
+    "productCount": 2,
+    "createdAt": "2025-02-20T14:30:00Z"
+  },
+  {
+    "id": 3,
+    "ownerId": 3,
+    "ownerName": "Bob Wilson",
+    "storeName": "Bob's Sports",
+    "description": "Sports gear and athletic wear",
+    "productCount": 2,
+    "createdAt": "2025-03-10T09:15:00Z"
+  }
+]
