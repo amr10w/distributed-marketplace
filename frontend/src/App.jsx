@@ -1,120 +1,104 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
+import { AuthProvider } from './context/AuthContext'
+import { CartProvider } from './context/CartContext'
+import MainLayout from './components/layout/MainLayout'
+import ProtectedRoute from './components/common/ProtectedRoute'
+
+import LoginPage from './pages/auth/LoginPage'
+import RegisterPage from './pages/auth/RegisterPage'
+
+import BrowsePage from './pages/marketplace/BrowsePage'
+import SearchResultsPage from './pages/marketplace/SearchResultsPage'
+import ProductDetailPage from './pages/marketplace/ProductDetailPage'
+
+import MyItemsPage from './pages/seller/MyItemsPage'
+import AddEditItemPage from './pages/seller/AddEditItemPage'
+import InventoryPage from './pages/seller/InventoryPage'
+
+import StoreSettingsPage from './pages/store/StoreSettingsPage'
+import PublicStorePage from './pages/store/PublicStorePage'
+
+import AccountOverviewPage from './pages/account/AccountOverviewPage'
+import DepositPage from './pages/account/DepositPage'
+import TransactionHistoryPage from './pages/account/TransactionHistoryPage'
+
+import ReportsPage from './pages/reports/ReportsPage'
+import TransactionReport from './pages/reports/TransactionReport'
+import SalesReport from './pages/reports/SalesReport'
+import PurchaseReport from './pages/reports/PurchaseReport'
+
+import NotFoundPage from './pages/error/NotFoundPage'
 
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+    <AuthProvider>
+      <CartProvider>
+        <Router>
+          <Routes>
+            {/* Public Auth Routes */}
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
 
-      <div className="ticks"></div>
+            {/* Main Layout Routes */}
+            <Route element={<MainLayout />}>
+              {/* Public */}
+              <Route path="/" element={<Navigate to="/marketplace" />} />
+              <Route path="/marketplace" element={<BrowsePage />} />
+              <Route path="/marketplace/search" element={<SearchResultsPage />} />
+              <Route path="/marketplace/:id" element={<ProductDetailPage />} />
+              <Route path="/store/:storeId" element={<PublicStorePage />} />
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
+              {/* Protected - Seller */}
+              <Route path="/seller/items" element={
+                <ProtectedRoute><MyItemsPage /></ProtectedRoute>
+              } />
+              <Route path="/seller/items/new" element={
+                <ProtectedRoute><AddEditItemPage /></ProtectedRoute>
+              } />
+              <Route path="/seller/items/:id/edit" element={
+                <ProtectedRoute><AddEditItemPage /></ProtectedRoute>
+              } />
+              <Route path="/seller/inventory" element={
+                <ProtectedRoute><InventoryPage /></ProtectedRoute>
+              } />
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
+              {/* Protected - Store */}
+              <Route path="/store/settings" element={
+                <ProtectedRoute><StoreSettingsPage /></ProtectedRoute>
+              } />
+
+              {/* Protected - Account */}
+              <Route path="/account" element={
+                <ProtectedRoute><AccountOverviewPage /></ProtectedRoute>
+              } />
+              <Route path="/account/deposit" element={
+                <ProtectedRoute><DepositPage /></ProtectedRoute>
+              } />
+              <Route path="/account/transactions" element={
+                <ProtectedRoute><TransactionHistoryPage /></ProtectedRoute>
+              } />
+
+              {/* Protected - Reports */}
+              <Route path="/reports" element={
+                <ProtectedRoute><ReportsPage /></ProtectedRoute>
+              } />
+              <Route path="/reports/transactions" element={
+                <ProtectedRoute><TransactionReport /></ProtectedRoute>
+              } />
+              <Route path="/reports/sales" element={
+                <ProtectedRoute><SalesReport /></ProtectedRoute>
+              } />
+              <Route path="/reports/purchases" element={
+                <ProtectedRoute><PurchaseReport /></ProtectedRoute>
+              } />
+            </Route>
+
+            {/* 404 */}
+            <Route path="*" element={<NotFoundPage />} />
+          </Routes>
+        </Router>
+      </CartProvider>
+    </AuthProvider>
   )
 }
 

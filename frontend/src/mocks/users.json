@@ -1,0 +1,32 @@
+[
+  {
+    "id": 1,
+    "username": "john_doe",
+    "email": "john@example.com",
+    "password": "password123",
+    "fullName": "John Doe",
+    "balance": 5000.00,
+    "storeName": "John's Electronics",
+    "createdAt": "2025-01-15T10:00:00Z"
+  },
+  {
+    "id": 2,
+    "username": "jane_smith",
+    "email": "jane@example.com",
+    "password": "password123",
+    "fullName": "Jane Smith",
+    "balance": 3200.00,
+    "storeName": "Jane's Books",
+    "createdAt": "2025-02-20T14:30:00Z"
+  },
+  {
+    "id": 3,
+    "username": "bob_wilson",
+    "email": "bob@example.com",
+    "password": "password123",
+    "fullName": "Bob Wilson",
+    "balance": 1500.00,
+    "storeName": "Bob's Sports",
+    "createdAt": "2025-03-10T09:15:00Z"
+  }
+]
