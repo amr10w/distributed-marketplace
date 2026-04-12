@@ -97,8 +97,8 @@ const BrowsePage = () => {
     <div className="animate-fade-in">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Browse Products</h1>
-          <p className="text-gray-500 mt-1">
+          <h1 className="text-3xl font-bold text-slate-100">Browse Products</h1>
+          <p className="text-slate-400 mt-1">
             {filtered.length} product{filtered.length !== 1 ? 's' : ''} available
             {user ? ' from other sellers' : ''}
           </p>
@@ -106,7 +106,7 @@ const BrowsePage = () => {
         <select
           value={sortBy}
           onChange={(e) => setSortBy(e.target.value)}
-          className="px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+          className="px-4 py-2 border border-slate-600 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gold-500 bg-slate-800 text-slate-100"
         >
           <option value="newest">Newest First</option>
           <option value="oldest">Oldest First</option>
@@ -124,8 +124,8 @@ const BrowsePage = () => {
             className={
               'px-4 py-2 rounded-full text-sm font-medium transition ' +
               (activeCategory === cat
-                ? 'bg-blue-600 text-white'
-                : 'bg-white border border-gray-200 text-gray-600 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200')
+                ? 'bg-gold-500 text-white shadow-md'
+                : 'bg-slate-800 border border-slate-700 text-slate-300 hover:bg-amber-900/30 hover:text-gold-300 hover:border-gold-500')
             }
           >
             {cat}
@@ -158,10 +158,10 @@ const BrowsePage = () => {
           />
         </>
       ) : (
-        <div className="text-center py-12 bg-white rounded-lg border border-gray-200">
+        <div className="text-center py-12 bg-slate-800 rounded-lg border border-slate-700">
           <div className="text-6xl mb-4">🔍</div>
-          <h3 className="text-xl font-semibold text-gray-700 mb-2">No products found</h3>
-          <p className="text-gray-500">
+          <h3 className="text-xl font-semibold text-slate-200 mb-2">No products found</h3>
+          <p className="text-slate-400">
             Try adjusting your filters or search criteria
           </p>
           <button
@@ -175,7 +175,7 @@ const BrowsePage = () => {
                 seller: '',
               })
             }}
-            className="mt-4 text-blue-600 hover:underline font-medium"
+            className="mt-4 text-gold-400 hover:underline font-medium"
           >
             Clear all filters
           </button>

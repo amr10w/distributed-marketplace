@@ -18,8 +18,8 @@ const AccountOverviewPage = () => {
     return (
       <div className="text-center py-12">
         <div className="text-6xl mb-4">🔒</div>
-        <h3 className="text-xl font-semibold text-gray-700">Please login</h3>
-        <Link to="/login" className="text-blue-600 hover:underline mt-2 inline-block">Go to Login</Link>
+        <h3 className="text-xl font-semibold text-slate-200">Please login</h3>
+        <Link to="/login" className="text-gold-400 hover:underline mt-2 inline-block">Go to Login</Link>
       </div>
     )
   }
@@ -42,85 +42,96 @@ const AccountOverviewPage = () => {
   ]
 
   return (
-    <div>
+    <div className="animate-fade-in">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">My Account</h1>
-          <p className="text-gray-500 mt-1">Welcome back, {user.fullName}</p>
+          <h1 className="text-3xl font-bold text-slate-100">My Account</h1>
+          <p className="text-slate-400 mt-1">Welcome back, {user.fullName}</p>
         </div>
         <Link
           to="/account/deposit"
-          className="bg-green-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-green-700 transition"
+          className="bg-emerald-900/300 text-white px-6 py-3 rounded-lg font-medium hover:bg-emerald-800 transition shadow-md"
         >
           + Deposit Cash
         </Link>
       </div>
 
-      <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl p-6 text-white mb-6">
-        <p className="text-blue-100 text-sm mb-1">Current Balance</p>
-        <p className="text-4xl font-bold mb-4">{formatCurrency(user.balance)}</p>
-        <div className="grid grid-cols-3 gap-4">
-          <div>
-            <p className="text-blue-200 text-xs">Total Sales</p>
-            <p className="text-lg font-semibold">{formatCurrency(totalSales)}</p>
-          </div>
-          <div>
-            <p className="text-blue-200 text-xs">Total Purchases</p>
-            <p className="text-lg font-semibold">{formatCurrency(totalPurchases)}</p>
-          </div>
-          <div>
-            <p className="text-blue-200 text-xs">Listed Items</p>
-            <p className="text-lg font-semibold">{myListedItems.length}</p>
+      {/* Balance Card */}
+      <div className="relative bg-gradient-to-r from-gold-500 to-gold-600 rounded-2xl p-6 text-white mb-6 overflow-hidden">
+        <div className="absolute inset-0 islamic-pattern opacity-15"></div>
+        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-gold-300 via-gold-200 to-gold-300"></div>
+
+        <div className="relative">
+          <p className="text-gold-200 text-sm mb-1">Current Balance</p>
+          <p className="text-4xl font-bold mb-4">{formatCurrency(user.balance)}</p>
+          <div className="grid grid-cols-3 gap-4">
+            <div className="bg-slate-800/10 backdrop-blur-sm rounded-lg px-3 py-2 border border-white/10">
+              <p className="text-gold-300 text-xs">Total Sales</p>
+              <p className="text-lg font-semibold">{formatCurrency(totalSales)}</p>
+            </div>
+            <div className="bg-slate-800/10 backdrop-blur-sm rounded-lg px-3 py-2 border border-white/10">
+              <p className="text-gold-300 text-xs">Total Purchases</p>
+              <p className="text-lg font-semibold">{formatCurrency(totalPurchases)}</p>
+            </div>
+            <div className="bg-slate-800/10 backdrop-blur-sm rounded-lg px-3 py-2 border border-white/10">
+              <p className="text-gold-300 text-xs">Listed Items</p>
+              <p className="text-lg font-semibold">{myListedItems.length}</p>
+            </div>
           </div>
         </div>
+
+        <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-gold-300 via-gold-200 to-gold-300"></div>
       </div>
 
+      {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-6">
-        <div className="bg-white rounded-lg border border-gray-200 p-4">
-          <p className="text-sm text-gray-500">Items Purchased</p>
-          <p className="text-2xl font-bold text-blue-600">{purchasedTransactions.length}</p>
+        <div className="bg-slate-800 rounded-lg border border-slate-700 p-4">
+          <p className="text-sm text-slate-400">Items Purchased</p>
+          <p className="text-2xl font-bold text-gold-400">{purchasedTransactions.length}</p>
         </div>
-        <div className="bg-white rounded-lg border border-gray-200 p-4">
-          <p className="text-sm text-gray-500">Items Sold</p>
-          <p className="text-2xl font-bold text-green-600">{soldTransactions.length}</p>
+        <div className="bg-slate-800 rounded-lg border border-slate-700 p-4">
+          <p className="text-sm text-slate-400">Items Sold</p>
+          <p className="text-2xl font-bold text-emerald-400">{soldTransactions.length}</p>
         </div>
-        <div className="bg-white rounded-lg border border-gray-200 p-4">
-          <p className="text-sm text-gray-500">Items For Sale</p>
-          <p className="text-2xl font-bold text-orange-600">{itemsForSale.length}</p>
+        <div className="bg-slate-800 rounded-lg border border-slate-700 p-4">
+          <p className="text-sm text-slate-400">Items For Sale</p>
+          <p className="text-2xl font-bold text-gold-400">{itemsForSale.length}</p>
         </div>
-        <div className="bg-white rounded-lg border border-gray-200 p-4">
-          <p className="text-sm text-gray-500">Deposits Made</p>
-          <p className="text-2xl font-bold text-purple-600">{depositTransactions.length}</p>
+        <div className="bg-slate-800 rounded-lg border border-slate-700 p-4">
+          <p className="text-sm text-slate-400">Deposits Made</p>
+          <p className="text-2xl font-bold text-lapis-600">{depositTransactions.length}</p>
         </div>
       </div>
 
-      <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Account Information</h2>
+      {/* Account Info */}
+      <div className="bg-slate-800 rounded-lg border border-slate-700 p-6 mb-6">
+        <h2 className="text-lg font-semibold text-slate-100 mb-4">Account Information</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <p className="text-sm text-gray-500">Full Name</p>
-            <p className="font-medium text-gray-900">{user.fullName}</p>
+            <p className="text-sm text-slate-400">Full Name</p>
+            <p className="font-medium text-slate-100">{user.fullName}</p>
           </div>
           <div>
-            <p className="text-sm text-gray-500">Username</p>
-            <p className="font-medium text-gray-900">{user.username}</p>
+            <p className="text-sm text-slate-400">Username</p>
+            <p className="font-medium text-slate-100">{user.username}</p>
           </div>
           <div>
-            <p className="text-sm text-gray-500">Email</p>
-            <p className="font-medium text-gray-900">{user.email}</p>
+            <p className="text-sm text-slate-400">Email</p>
+            <p className="font-medium text-slate-100">{user.email}</p>
           </div>
           <div>
-            <p className="text-sm text-gray-500">Store Name</p>
-            <p className="font-medium text-gray-900">{user.storeName || 'Not set'}</p>
+            <p className="text-sm text-slate-400">Store Name</p>
+            <p className="font-medium text-slate-100">{user.storeName || 'Not set'}</p>
           </div>
           <div>
-            <p className="text-sm text-gray-500">Member Since</p>
-            <p className="font-medium text-gray-900">{formatDate(user.createdAt)}</p>
+            <p className="text-sm text-slate-400">Member Since</p>
+            <p className="font-medium text-slate-100">{formatDate(user.createdAt)}</p>
           </div>
         </div>
       </div>
 
-      <div className="border-b border-gray-200 mb-6">
+      {/* Tabs */}
+      <div className="border-b border-slate-700 mb-6">
         <div className="flex gap-0 overflow-x-auto">
           {tabs.map((tab) => (
             <button
@@ -129,8 +140,8 @@ const AccountOverviewPage = () => {
               className={
                 'px-6 py-3 text-sm font-medium border-b-2 transition whitespace-nowrap ' +
                 (activeTab === tab.key
-                  ? 'border-blue-600 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700')
+                  ? 'border-gold-400 text-gold-400'
+                  : 'border-transparent text-slate-400 hover:text-slate-200')
               }
             >
               {tab.label}
@@ -139,38 +150,39 @@ const AccountOverviewPage = () => {
         </div>
       </div>
 
+      {/* Overview Tab */}
       {activeTab === 'overview' && (
-        <div className="bg-white rounded-lg border border-gray-200 p-6">
-          <h3 className="font-semibold text-gray-900 mb-4">Recent Activity</h3>
+        <div className="bg-slate-800 rounded-lg border border-slate-700 p-6">
+          <h3 className="font-semibold text-slate-100 mb-4">Recent Activity</h3>
           {allTransactions.length > 0 ? (
             allTransactions.slice(0, 10).map((t) => (
-              <div key={t.id} className="flex items-center justify-between py-3 border-b border-gray-100 last:border-0">
+              <div key={t.id} className="flex items-center justify-between py-3 border-b border-slate-700 last:border-0">
                 <div className="flex items-center gap-3">
                   <div
                     className={
                       'w-10 h-10 rounded-full flex items-center justify-center text-lg ' +
                       (t.type === 'PURCHASE'
-                        ? t.buyerId === user.id ? 'bg-red-100' : 'bg-green-100'
-                        : 'bg-blue-100')
+                        ? t.buyerId === user.id ? 'bg-red-900/30' : 'bg-emerald-900/30'
+                        : 'bg-lapis-50')
                     }
                   >
                     {t.type === 'PURCHASE' ? (t.buyerId === user.id ? '🛒' : '💰') : '💳'}
                   </div>
                   <div>
-                    <p className="font-medium text-gray-900 text-sm">
+                    <p className="font-medium text-slate-100 text-sm">
                       {t.type === 'PURCHASE'
                         ? t.buyerId === user.id
                           ? 'Purchased ' + t.productName
                           : 'Sold ' + t.productName
                         : 'Deposited funds'}
                     </p>
-                    <p className="text-xs text-gray-500">{formatDate(t.createdAt)}</p>
+                    <p className="text-xs text-slate-500">{formatDate(t.createdAt)}</p>
                   </div>
                 </div>
                 <span
                   className={
                     'font-semibold ' +
-                    (t.type === 'PURCHASE' && t.buyerId === user.id ? 'text-red-600' : 'text-green-600')
+                    (t.type === 'PURCHASE' && t.buyerId === user.id ? 'text-red-400' : 'text-emerald-400')
                   }
                 >
                   {t.type === 'PURCHASE' && t.buyerId === user.id ? '-' : '+'}
@@ -181,37 +193,38 @@ const AccountOverviewPage = () => {
           ) : (
             <div className="text-center py-8">
               <div className="text-4xl mb-2">📭</div>
-              <p className="text-gray-500">No activity yet</p>
+              <p className="text-slate-400">No activity yet</p>
             </div>
           )}
         </div>
       )}
 
+      {/* Purchased Tab */}
       {activeTab === 'purchased' && (
-        <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+        <div className="bg-slate-800 rounded-lg border border-slate-700 overflow-hidden">
           {purchasedTransactions.length > 0 ? (
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-gray-50 border-b border-gray-200">
+                <thead className="bg-slate-900 border-b border-slate-700">
                   <tr>
-                    <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Product</th>
-                    <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Seller</th>
-                    <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Qty</th>
-                    <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Amount</th>
-                    <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Date</th>
-                    <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Status</th>
+                    <th className="text-left px-6 py-3 text-sm font-medium text-slate-400">Product</th>
+                    <th className="text-left px-6 py-3 text-sm font-medium text-slate-400">Seller</th>
+                    <th className="text-left px-6 py-3 text-sm font-medium text-slate-400">Qty</th>
+                    <th className="text-left px-6 py-3 text-sm font-medium text-slate-400">Amount</th>
+                    <th className="text-left px-6 py-3 text-sm font-medium text-slate-400">Date</th>
+                    <th className="text-left px-6 py-3 text-sm font-medium text-slate-400">Status</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-200">
+                <tbody className="divide-y divide-slate-700">
                   {purchasedTransactions.map((t) => (
-                    <tr key={t.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 font-medium text-gray-900">{t.productName}</td>
-                      <td className="px-6 py-4 text-sm text-gray-600">{t.sellerName}</td>
-                      <td className="px-6 py-4 text-sm text-gray-600">{t.quantity || 1}</td>
-                      <td className="px-6 py-4 text-sm font-medium text-red-600">-{formatCurrency(t.amount)}</td>
-                      <td className="px-6 py-4 text-sm text-gray-500">{formatDate(t.createdAt)}</td>
+                    <tr key={t.id} className="hover:bg-slate-900">
+                      <td className="px-6 py-4 font-medium text-slate-100">{t.productName}</td>
+                      <td className="px-6 py-4 text-sm text-slate-300">{t.sellerName}</td>
+                      <td className="px-6 py-4 text-sm text-slate-300">{t.quantity || 1}</td>
+                      <td className="px-6 py-4 text-sm font-medium text-red-400">-{formatCurrency(t.amount)}</td>
+                      <td className="px-6 py-4 text-sm text-slate-400">{formatDate(t.createdAt)}</td>
                       <td className="px-6 py-4">
-                        <span className="text-xs px-2 py-1 rounded-full bg-green-100 text-green-700 font-medium">{t.status}</span>
+                        <span className="text-xs px-2 py-1 rounded-full bg-emerald-900/30 text-emerald-400 font-medium border border-emerald-800">{t.status}</span>
                       </td>
                     </tr>
                   ))}
@@ -221,38 +234,39 @@ const AccountOverviewPage = () => {
           ) : (
             <div className="text-center py-12">
               <div className="text-4xl mb-2">🛒</div>
-              <p className="text-gray-500">No purchases yet</p>
-              <Link to="/marketplace" className="text-blue-600 hover:underline mt-2 inline-block">Browse Marketplace</Link>
+              <p className="text-slate-400">No purchases yet</p>
+              <Link to="/marketplace" className="text-gold-400 hover:underline mt-2 inline-block">Browse Marketplace</Link>
             </div>
           )}
         </div>
       )}
 
+      {/* Sold Tab */}
       {activeTab === 'sold' && (
-        <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+        <div className="bg-slate-800 rounded-lg border border-slate-700 overflow-hidden">
           {soldTransactions.length > 0 ? (
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-gray-50 border-b border-gray-200">
+                <thead className="bg-slate-900 border-b border-slate-700">
                   <tr>
-                    <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Product</th>
-                    <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Buyer</th>
-                    <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Qty</th>
-                    <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Revenue</th>
-                    <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Date</th>
-                    <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Status</th>
+                    <th className="text-left px-6 py-3 text-sm font-medium text-slate-400">Product</th>
+                    <th className="text-left px-6 py-3 text-sm font-medium text-slate-400">Buyer</th>
+                    <th className="text-left px-6 py-3 text-sm font-medium text-slate-400">Qty</th>
+                    <th className="text-left px-6 py-3 text-sm font-medium text-slate-400">Revenue</th>
+                    <th className="text-left px-6 py-3 text-sm font-medium text-slate-400">Date</th>
+                    <th className="text-left px-6 py-3 text-sm font-medium text-slate-400">Status</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-200">
+                <tbody className="divide-y divide-slate-700">
                   {soldTransactions.map((t) => (
-                    <tr key={t.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 font-medium text-gray-900">{t.productName}</td>
-                      <td className="px-6 py-4 text-sm text-gray-600">{t.buyerName}</td>
-                      <td className="px-6 py-4 text-sm text-gray-600">{t.quantity || 1}</td>
-                      <td className="px-6 py-4 text-sm font-medium text-green-600">+{formatCurrency(t.amount)}</td>
-                      <td className="px-6 py-4 text-sm text-gray-500">{formatDate(t.createdAt)}</td>
+                    <tr key={t.id} className="hover:bg-slate-900">
+                      <td className="px-6 py-4 font-medium text-slate-100">{t.productName}</td>
+                      <td className="px-6 py-4 text-sm text-slate-300">{t.buyerName}</td>
+                      <td className="px-6 py-4 text-sm text-slate-300">{t.quantity || 1}</td>
+                      <td className="px-6 py-4 text-sm font-medium text-emerald-400">+{formatCurrency(t.amount)}</td>
+                      <td className="px-6 py-4 text-sm text-slate-400">{formatDate(t.createdAt)}</td>
                       <td className="px-6 py-4">
-                        <span className="text-xs px-2 py-1 rounded-full bg-green-100 text-green-700 font-medium">{t.status}</span>
+                        <span className="text-xs px-2 py-1 rounded-full bg-emerald-900/30 text-emerald-400 font-medium border border-emerald-800">{t.status}</span>
                       </td>
                     </tr>
                   ))}
@@ -262,44 +276,50 @@ const AccountOverviewPage = () => {
           ) : (
             <div className="text-center py-12">
               <div className="text-4xl mb-2">💰</div>
-              <p className="text-gray-500">No sales yet</p>
-              <Link to="/seller/items/new" className="text-blue-600 hover:underline mt-2 inline-block">List an item</Link>
+              <p className="text-slate-400">No sales yet</p>
+              <Link to="/seller/items/new" className="text-gold-400 hover:underline mt-2 inline-block">List an item</Link>
             </div>
           )}
         </div>
       )}
 
+      {/* For Sale Tab */}
       {activeTab === 'forsale' && (
-        <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+        <div className="bg-slate-800 rounded-lg border border-slate-700 overflow-hidden">
           {itemsForSale.length > 0 ? (
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-gray-50 border-b border-gray-200">
+                <thead className="bg-slate-900 border-b border-slate-700">
                   <tr>
-                    <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Product</th>
-                    <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Category</th>
-                    <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Price</th>
-                    <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Stock</th>
-                    <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Status</th>
+                    <th className="text-left px-6 py-3 text-sm font-medium text-slate-400">Product</th>
+                    <th className="text-left px-6 py-3 text-sm font-medium text-slate-400">Category</th>
+                    <th className="text-left px-6 py-3 text-sm font-medium text-slate-400">Price</th>
+                    <th className="text-left px-6 py-3 text-sm font-medium text-slate-400">Stock</th>
+                    <th className="text-left px-6 py-3 text-sm font-medium text-slate-400">Status</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-200">
+                <tbody className="divide-y divide-slate-700">
                   {itemsForSale.map((item) => (
-                    <tr key={item.id} className="hover:bg-gray-50">
+                    <tr key={item.id} className="hover:bg-slate-900">
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
-                          <img src={item.image} alt={item.name} className="w-10 h-10 rounded-lg object-cover" />
+                          <img
+                            src={item.image}
+                            alt={item.name}
+                            className="w-10 h-10 rounded-lg object-cover"
+                            onError={(e) => { e.target.src = 'https://via.placeholder.com/40x40?text=No+Img' }}
+                          />
                           <div>
-                            <p className="font-medium text-gray-900">{item.name}</p>
-                            <p className="text-sm text-gray-500">{item.brand}</p>
+                            <p className="font-medium text-slate-100">{item.name}</p>
+                            <p className="text-sm text-slate-400">{item.brand}</p>
                           </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4 text-sm text-gray-600">{item.category}</td>
-                      <td className="px-6 py-4 text-sm font-medium text-gray-900">{formatCurrency(item.price)}</td>
-                      <td className="px-6 py-4 text-sm text-gray-600">{item.quantity}</td>
+                      <td className="px-6 py-4 text-sm text-slate-300">{item.category}</td>
+                      <td className="px-6 py-4 text-sm font-medium text-gold-400">{formatCurrency(item.price)}</td>
+                      <td className="px-6 py-4 text-sm text-slate-300">{item.quantity}</td>
                       <td className="px-6 py-4">
-                        <span className="text-xs px-2 py-1 rounded-full bg-green-100 text-green-700 font-medium">Available</span>
+                        <span className="text-xs px-2 py-1 rounded-full bg-emerald-900/30 text-emerald-400 font-medium border border-emerald-800">Available</span>
                       </td>
                     </tr>
                   ))}
@@ -309,8 +329,8 @@ const AccountOverviewPage = () => {
           ) : (
             <div className="text-center py-12">
               <div className="text-4xl mb-2">📦</div>
-              <p className="text-gray-500">No items for sale</p>
-              <Link to="/seller/items/new" className="text-blue-600 hover:underline mt-2 inline-block">Add an item</Link>
+              <p className="text-slate-400">No items for sale</p>
+              <Link to="/seller/items/new" className="text-gold-400 hover:underline mt-2 inline-block">Add an item</Link>
             </div>
           )}
         </div>

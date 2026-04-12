@@ -73,15 +73,15 @@ const SearchResultsPage = () => {
     <div className="animate-fade-in">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Search Results</h1>
-          <p className="text-gray-500 mt-1">
-            {results.length} result{results.length !== 1 ? 's' : ''} for "<span className="font-medium text-gray-700">{query}</span>"
+          <h1 className="text-3xl font-bold text-slate-100">Search Results</h1>
+          <p className="text-slate-400 mt-1">
+            {results.length} result{results.length !== 1 ? 's' : ''} for "<span className="font-medium text-slate-200">{query}</span>"
           </p>
         </div>
         <select
           value={sortBy}
           onChange={(e) => setSortBy(e.target.value)}
-          className="px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+          className="px-4 py-2 border border-slate-600 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gold-500 bg-slate-800 text-slate-100"
         >
           <option value="relevance">Most Relevant</option>
           <option value="newest">Newest First</option>
@@ -119,10 +119,10 @@ const SearchResultsPage = () => {
           />
         </>
       ) : (
-        <div className="text-center py-12 bg-white rounded-lg border border-gray-200">
+        <div className="text-center py-12 bg-slate-800 rounded-lg border border-slate-700">
           <div className="text-6xl mb-4">🔍</div>
-          <h3 className="text-xl font-semibold text-gray-700 mb-2">No products found</h3>
-          <p className="text-gray-500">
+          <h3 className="text-xl font-semibold text-slate-200 mb-2">No products found</h3>
+          <p className="text-slate-400">
             Try different keywords or adjust your filters
           </p>
         </div>

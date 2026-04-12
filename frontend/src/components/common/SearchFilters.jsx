@@ -36,32 +36,32 @@ const SearchFilters = ({ onApplyFilters, totalResults }) => {
     filters.seller !== ''
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 mb-6">
+    <div className="bg-slate-800 rounded-lg border border-slate-700 mb-6">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center justify-between px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 transition"
+        className="w-full flex items-center justify-between px-4 py-3 text-sm font-medium text-slate-200 hover:bg-slate-900 transition rounded-lg"
       >
         <div className="flex items-center gap-2">
           <span>🔍</span>
           <span>Advanced Filters</span>
           {hasActiveFilters && (
-            <span className="bg-blue-100 text-blue-700 text-xs px-2 py-0.5 rounded-full font-medium">
+            <span className="bg-amber-900/30 text-gold-300 text-xs px-2 py-0.5 rounded-full font-medium border border-gold-700">
               Active
             </span>
           )}
         </div>
-        <span className="text-gray-400">{isOpen ? '▲' : '▼'}</span>
+        <span className="text-slate-500">{isOpen ? '▲' : '▼'}</span>
       </button>
 
       {isOpen && (
-        <div className="px-4 pb-4 border-t border-gray-100 pt-4">
+        <div className="px-4 pb-4 border-t border-slate-700 pt-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
             <div>
-              <label className="block text-xs font-medium text-gray-500 mb-1">Category</label>
+              <label className="block text-xs font-medium text-slate-400 mb-1">Category</label>
               <select
                 value={filters.category}
                 onChange={(e) => handleChange('category', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-slate-600 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gold-500 focus:border-transparent bg-slate-800 text-slate-100"
               >
                 <option value="All">All Categories</option>
                 {PRODUCT_CATEGORIES.map((cat) => (
@@ -71,37 +71,37 @@ const SearchFilters = ({ onApplyFilters, totalResults }) => {
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-gray-500 mb-1">Min Price ($)</label>
+              <label className="block text-xs font-medium text-slate-400 mb-1">Min Price ($)</label>
               <input
                 type="number"
                 value={filters.minPrice}
                 onChange={(e) => handleChange('minPrice', e.target.value)}
                 placeholder="0"
                 min="0"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-slate-600 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gold-500 focus:border-transparent text-slate-100"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-gray-500 mb-1">Max Price ($)</label>
+              <label className="block text-xs font-medium text-slate-400 mb-1">Max Price ($)</label>
               <input
                 type="number"
                 value={filters.maxPrice}
                 onChange={(e) => handleChange('maxPrice', e.target.value)}
                 placeholder="Any"
                 min="0"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-slate-600 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gold-500 focus:border-transparent text-slate-100"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-gray-500 mb-1">Seller Name</label>
+              <label className="block text-xs font-medium text-slate-400 mb-1">Seller Name</label>
               <input
                 type="text"
                 value={filters.seller}
                 onChange={(e) => handleChange('seller', e.target.value)}
                 placeholder="Any seller"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-slate-600 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gold-500 focus:border-transparent text-slate-100"
               />
             </div>
 
@@ -111,21 +111,21 @@ const SearchFilters = ({ onApplyFilters, totalResults }) => {
                   type="checkbox"
                   checked={filters.inStockOnly}
                   onChange={(e) => handleChange('inStockOnly', e.target.checked)}
-                  className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                  className="w-4 h-4 text-gold-400 rounded focus:ring-gold-500 border-slate-600"
                 />
-                <span className="text-sm text-gray-700">In Stock Only</span>
+                <span className="text-sm text-slate-200">In Stock Only</span>
               </label>
             </div>
           </div>
 
-          <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100">
-            <p className="text-sm text-gray-500">
+          <div className="flex items-center justify-between mt-4 pt-4 border-t border-slate-700">
+            <p className="text-sm text-slate-400">
               {totalResults} result{totalResults !== 1 ? 's' : ''} found
             </p>
             {hasActiveFilters && (
               <button
                 onClick={resetFilters}
-                className="text-sm text-red-600 hover:text-red-800 font-medium"
+                className="text-sm text-red-400 hover:text-red-400 font-medium"
               >
                 Clear All Filters
               </button>
