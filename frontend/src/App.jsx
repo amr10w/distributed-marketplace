@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
 import { CartProvider } from './context/CartContext'
 import { ToastProvider } from './context/ToastContext'
@@ -12,6 +12,7 @@ import RegisterPage from './pages/auth/RegisterPage'
 import BrowsePage from './pages/marketplace/BrowsePage'
 import SearchResultsPage from './pages/marketplace/SearchResultsPage'
 import ProductDetailPage from './pages/marketplace/ProductDetailPage'
+import CartCheckoutPage from './pages/marketplace/CartCheckoutPage'
 
 import MyItemsPage from './pages/seller/MyItemsPage'
 import AddEditItemPage from './pages/seller/AddEditItemPage'
@@ -48,6 +49,10 @@ function App() {
                 <Route path="/marketplace/search" element={<SearchResultsPage />} />
                 <Route path="/marketplace/:id" element={<ProductDetailPage />} />
                 <Route path="/store/:storeId" element={<PublicStorePage />} />
+
+                <Route path="/cart/checkout" element={
+                  <ProtectedRoute><CartCheckoutPage /></ProtectedRoute>
+                } />
 
                 <Route path="/seller/items" element={
                   <ProtectedRoute><MyItemsPage /></ProtectedRoute>

@@ -1,14 +1,18 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
+import { useCart } from '../../hooks/useCart'
 import { formatCurrency } from '../../lib/utils'
 
 const Navbar = () => {
   const { user, logout } = useAuth()
+  const { getCartCount, toggleCart } = useCart()
   const navigate = useNavigate()
   const [searchQuery, setSearchQuery] = useState('')
   const [showMobileSearch, setShowMobileSearch] = useState(false)
   const [showUserMenu, setShowUserMenu] = useState(false)
+
+  const cartCount = getCartCount()
 
   const handleSearch = (e) => {
     e.preventDefault()
@@ -26,10 +30,10 @@ const Navbar = () => {
   }
 
   return (
-    <nav className="bg-white shadow-sm border-b border-gray-200 px-4 lg:px-6 py-3 sticky top-0 z-20">
+    <nav className="bg-slate-800 shadow-sm border-b border-slate-700 px-4 lg:px-6 py-3 sticky top-0 z-20">
       <div className="flex items-center justify-between gap-4">
         {/* Logo */}
-        <Link to="/marketplace" className="text-xl lg:text-2xl font-bold text-blue-600 whitespace-nowrap">
+        <Link to="/marketplace" className="text-xl lg:text-2xl font-bold text-gold-400 whitespace-nowrap">
           🛒 MarketPlace
         </Link>
 
@@ -41,10 +45,10 @@ const Navbar = () => {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search products by name or brand..."
-              className="w-full px-4 py-2.5 pl-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+              className="w-full px-4 py-2.5 pl-10 border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-gold-500 focus:border-transparent text-sm bg-slate-800 text-slate-100"
             />
             <svg
-              className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"
+              className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -54,7 +58,7 @@ const Navbar = () => {
             {searchQuery && (
               <button
                 type="submit"
-                className="absolute right-2 top-1/2 -translate-y-1/2 bg-blue-600 text-white px-3 py-1 rounded-md text-xs font-medium hover:bg-blue-700"
+                className="absolute right-2 top-1/2 -translate-y-1/2 bg-gold-500 text-white px-3 py-1 rounded-md text-xs font-medium hover:bg-gold-600"
               >
                 Search
               </button>
@@ -67,17 +71,45 @@ const Navbar = () => {
           {/* Mobile Search Toggle */}
           <button
             onClick={() => setShowMobileSearch(!showMobileSearch)}
-            className="md:hidden p-2 text-gray-600 hover:text-blue-600"
+            className="md:hidden p-2 text-slate-300 hover:text-gold-300"
           >
             🔍
           </button>
+
+          {/* Cart Button */}
+          {user && (
+            <button
+              onClick={toggleCart}
+              className="relative p-2 text-slate-300 hover:text-gold-300 hover:bg-amber-900/30 rounded-lg transition"
+              title="Shopping Cart"
+            >
+              <svg
+                className="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z"
+                />
+              </svg>
+              {cartCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-900/300 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold">
+                  {cartCount > 9 ? '9+' : cartCount}
+                </span>
+              )}
+            </button>
+          )}
 
           {user ? (
             <>
               {/* Balance Badge */}
               <Link
                 to="/account/deposit"
-                className="hidden sm:flex items-center gap-1 bg-green-50 text-green-700 px-3 py-1.5 rounded-full text-sm font-medium hover:bg-green-100 transition"
+                className="hidden sm:flex items-center gap-1 bg-emerald-900/30 text-emerald-400 px-3 py-1.5 rounded-full text-sm font-medium hover:bg-emerald-900/50 transition"
               >
                 💰 {formatCurrency(user.balance)}
               </Link>
@@ -86,12 +118,12 @@ const Navbar = () => {
               <div className="relative">
                 <button
                   onClick={() => setShowUserMenu(!showUserMenu)}
-                  className="flex items-center gap-2 bg-gray-100 hover:bg-gray-200 px-3 py-2 rounded-lg transition"
+                  className="flex items-center gap-2 bg-slate-800 hover:bg-slate-600 px-3 py-2 rounded-lg transition"
                 >
-                  <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white text-sm font-bold">
+                  <div className="w-8 h-8 bg-gold-600 rounded-full flex items-center justify-center text-white text-sm font-bold">
                     {user.fullName.charAt(0)}
                   </div>
-                  <span className="hidden lg:block text-sm font-medium text-gray-700">
+                  <span className="hidden lg:block text-sm font-medium text-slate-100">
                     {user.fullName}
                   </span>
                 </button>
@@ -103,12 +135,12 @@ const Navbar = () => {
                       className="fixed inset-0 z-40"
                       onClick={() => setShowUserMenu(false)}
                     />
-                    <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 z-50 py-2">
+                    <div className="absolute right-0 mt-2 w-64 bg-slate-800 rounded-lg shadow-lg border border-slate-700 z-50 py-2">
                       {/* User Info */}
-                      <div className="px-4 py-3 border-b border-gray-100">
-                        <p className="font-medium text-gray-900">{user.fullName}</p>
-                        <p className="text-sm text-gray-500">{user.email}</p>
-                        <p className="text-sm font-medium text-green-600 mt-1">
+                      <div className="px-4 py-3 border-b border-slate-700">
+                        <p className="font-medium text-slate-100">{user.fullName}</p>
+                        <p className="text-sm text-slate-400">{user.email}</p>
+                        <p className="text-sm font-medium text-emerald-400 mt-1">
                           Balance: {formatCurrency(user.balance)}
                         </p>
                       </div>
@@ -118,38 +150,50 @@ const Navbar = () => {
                         <Link
                           to="/account"
                           onClick={() => setShowUserMenu(false)}
-                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                          className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-900"
                         >
                           👤 My Account
                         </Link>
                         <Link
+                          to="/cart/checkout"
+                          onClick={() => setShowUserMenu(false)}
+                          className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-900"
+                        >
+                          🛒 My Cart
+                          {cartCount > 0 && (
+                            <span className="ml-2 bg-amber-900/30 text-gold-400 text-xs px-2 py-0.5 rounded-full font-medium">
+                              {cartCount}
+                            </span>
+                          )}
+                        </Link>
+                        <Link
                           to="/seller/items"
                           onClick={() => setShowUserMenu(false)}
-                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                          className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-900"
                         >
                           📦 My Items
                         </Link>
                         <Link
                           to="/account/deposit"
                           onClick={() => setShowUserMenu(false)}
-                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                          className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-900"
                         >
                           💳 Deposit Cash
                         </Link>
                         <Link
                           to="/reports"
                           onClick={() => setShowUserMenu(false)}
-                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                          className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-900"
                         >
                           📊 Reports
                         </Link>
                       </div>
 
                       {/* Logout */}
-                      <div className="border-t border-gray-100 py-1">
+                      <div className="border-t border-slate-700 py-1">
                         <button
                           onClick={handleLogout}
-                          className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+                          className="block w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-red-900/30"
                         >
                           🚪 Logout
                         </button>
@@ -163,13 +207,13 @@ const Navbar = () => {
             <div className="flex items-center gap-2">
               <Link
                 to="/login"
-                className="text-gray-600 hover:text-blue-600 font-medium text-sm px-3 py-2"
+                className="text-slate-300 hover:text-gold-300 font-medium text-sm px-3 py-2"
               >
                 Login
               </Link>
               <Link
                 to="/register"
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 text-sm font-medium transition"
+                className="bg-gold-500 text-white px-4 py-2 rounded-lg hover:bg-gold-600 text-sm font-medium transition shadow-md"
               >
                 Register
               </Link>
@@ -188,11 +232,11 @@ const Navbar = () => {
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search products..."
               autoFocus
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+              className="w-full px-4 py-2.5 border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-gold-500 text-sm bg-slate-800 text-slate-100"
             />
             <button
               type="submit"
-              className="absolute right-2 top-1/2 -translate-y-1/2 bg-blue-600 text-white px-3 py-1 rounded-md text-xs font-medium"
+              className="absolute right-2 top-1/2 -translate-y-1/2 bg-gold-500 text-white px-3 py-1 rounded-md text-xs font-medium"
             >
               Search
             </button>

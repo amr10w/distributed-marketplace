@@ -35,12 +35,12 @@ const ToastProvider = ({ children }) => {
             className={
               'flex items-center gap-3 px-4 py-3 rounded-lg shadow-lg border animate-slide-in ' +
               (toast.type === 'success'
-                ? 'bg-green-50 border-green-200 text-green-800'
+                ? 'bg-emerald-900/30 border-emerald-800 text-emerald-300'
                 : toast.type === 'error'
-                ? 'bg-red-50 border-red-200 text-red-800'
+                ? 'bg-red-900/30 border-red-800 text-red-400'
                 : toast.type === 'warning'
-                ? 'bg-yellow-50 border-yellow-200 text-yellow-800'
-                : 'bg-blue-50 border-blue-200 text-blue-800')
+                ? 'bg-amber-900/30 border-gold-600 text-gold-400'
+                : 'bg-lapis-50 border-lapis-200 text-lapis-800')
             }
           >
             <span className="text-lg">

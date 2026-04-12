@@ -3,11 +3,13 @@ import Navbar from './Navbar'
 import Sidebar from './Sidebar'
 import Footer from './Footer'
 import Breadcrumbs from '../common/Breadcrumbs'
+import CartDrawer from '../common/CartDrawer'
 
 const MainLayout = () => {
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-screen bg-slate-900 flex flex-col">
       <Navbar />
+      <CartDrawer />
       <div className="flex flex-1">
         <Sidebar />
         <main className="flex-1 p-4 lg:p-6 overflow-x-hidden">

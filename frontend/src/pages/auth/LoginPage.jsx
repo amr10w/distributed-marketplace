@@ -44,85 +44,94 @@ const LoginPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-800 flex items-center justify-center p-4 relative overflow-hidden">
+      {/* Background decoration */}
+      <div className="absolute inset-0 islamic-pattern opacity-40"></div>
+      <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-gold-300 via-gold-200 to-gold-300"></div>
+
+      <div className="w-full max-w-md relative z-10">
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-blue-600">🛒 MarketPlace</h1>
-          <p className="text-gray-500 mt-2">Welcome back! Login to your account</p>
+          <h1 className="text-4xl font-bold text-gold-400">🕌 MarketPlace</h1>
+          <p className="text-slate-400 mt-2">Welcome back! Login to your account</p>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-lg p-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">Login</h2>
+        <div className="bg-slate-800 rounded-2xl shadow-xl p-8 border border-slate-700">
+          {/* Gold accent top */}
+          <div className="flex items-center justify-center gap-2 mb-6">
+            <div className="flex-1 h-px bg-gradient-to-r from-transparent to-gold-200"></div>
+            <h2 className="text-2xl font-bold text-slate-100">Login</h2>
+            <div className="flex-1 h-px bg-gradient-to-l from-transparent to-gold-200"></div>
+          </div>
 
           {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4 text-sm">
+            <div className="bg-red-900/30 border border-red-800 text-red-400 px-4 py-3 rounded-lg mb-4 text-sm">
               {error}
             </div>
           )}
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+              <label className="block text-sm font-medium text-slate-200 mb-1">Email Address</label>
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="john@example.com"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                className="w-full px-4 py-3 border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-gold-500 focus:border-transparent transition bg-slate-900 text-slate-100 placeholder:text-slate-500"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+              <label className="block text-sm font-medium text-slate-200 mb-1">Password</label>
               <input
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Enter your password"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                className="w-full px-4 py-3 border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-gold-500 focus:border-transparent transition bg-slate-900 text-slate-100 placeholder:text-slate-500"
               />
             </div>
 
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full bg-gold-500 text-white py-3 rounded-lg font-medium hover:bg-gold-600 transition disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
             >
               {loading ? 'Logging in...' : 'Login'}
             </button>
           </form>
 
           <div className="mt-6">
-            <p className="text-xs font-medium text-gray-500 mb-3">Quick Login (click to fill):</p>
+            <p className="text-xs font-medium text-slate-400 mb-3">Quick Login (click to fill):</p>
             <div className="space-y-2">
               {testAccounts.map((acc) => (
                 <button
                   key={acc.email}
                   onClick={() => quickLogin(acc.email)}
-                  className="w-full flex items-center justify-between px-3 py-2 bg-gray-50 hover:bg-blue-50 rounded-lg text-left transition text-sm"
+                  className="w-full flex items-center justify-between px-3 py-2 bg-slate-900 hover:bg-amber-900/30 rounded-lg text-left transition text-sm border border-transparent hover:border-gold-700"
                 >
                   <div>
-                    <span className="font-medium text-gray-900">{acc.name}</span>
-                    <span className="text-gray-400 mx-2">·</span>
-                    <span className="text-gray-500">{acc.email}</span>
+                    <span className="font-medium text-slate-100">{acc.name}</span>
+                    <span className="text-slate-500 mx-2">·</span>
+                    <span className="text-slate-400">{acc.email}</span>
                   </div>
                   <span className={
                     'text-xs px-2 py-0.5 rounded-full font-medium ' +
                     (acc.role.includes('Customer')
-                      ? 'bg-purple-100 text-purple-700'
-                      : 'bg-blue-100 text-blue-700')
+                      ? 'bg-emerald-900/30 text-emerald-400 border border-emerald-800'
+                      : 'bg-amber-900/30 text-gold-300 border border-gold-700')
                   }>
                     {acc.role}
                   </span>
                 </button>
               ))}
             </div>
-            <p className="text-xs text-gray-400 mt-2">Password for all: password123</p>
+            <p className="text-xs text-slate-500 mt-2">Password for all: password123</p>
           </div>
 
-          <p className="text-center text-sm text-gray-500 mt-6">
+          <p className="text-center text-sm text-slate-400 mt-6">
             Do not have an account?{' '}
-            <Link to="/register" className="text-blue-600 font-medium hover:underline">Register here</Link>
+            <Link to="/register" className="text-gold-400 font-medium hover:underline">Register here</Link>
           </p>
         </div>
       </div>

@@ -16,8 +16,8 @@ const TransactionReport = () => {
     return (
       <div className="text-center py-12">
         <div className="text-6xl mb-4">🔒</div>
-        <h3 className="text-xl font-semibold text-gray-700">Please login to view reports</h3>
-        <Link to="/login" className="text-blue-600 hover:underline mt-2 inline-block">Go to Login</Link>
+        <h3 className="text-xl font-semibold text-slate-200">Please login to view reports</h3>
+        <Link to="/login" className="text-gold-400 hover:underline mt-2 inline-block">Go to Login</Link>
       </div>
     )
   }
@@ -41,46 +41,47 @@ const TransactionReport = () => {
   const depositCount = filtered.filter((t) => t.type === 'DEPOSIT').length
 
   return (
-    <div>
+    <div className="animate-fade-in">
       <button
         onClick={() => navigate('/reports')}
-        className="text-blue-600 hover:text-blue-800 font-medium mb-6 flex items-center gap-1"
+        className="text-gold-400 hover:text-gold-300 font-medium mb-6 flex items-center gap-1"
       >
         ← Back to Reports
       </button>
 
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900">Transaction Report</h1>
-        <p className="text-gray-500 mt-1">Complete overview of all marketplace transactions</p>
+        <h1 className="text-3xl font-bold text-slate-100">Transaction Report</h1>
+        <p className="text-slate-400 mt-1">Complete overview of all marketplace transactions</p>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-6">
-        <div className="bg-white rounded-lg border border-gray-200 p-4">
-          <p className="text-sm text-gray-500">Total Transactions</p>
-          <p className="text-2xl font-bold text-gray-900">{filtered.length}</p>
+        <div className="bg-slate-800 rounded-lg border border-slate-700 p-4">
+          <p className="text-sm text-slate-400">Total Transactions</p>
+          <p className="text-2xl font-bold text-slate-100">{filtered.length}</p>
         </div>
-        <div className="bg-white rounded-lg border border-gray-200 p-4">
-          <p className="text-sm text-gray-500">Total Volume</p>
-          <p className="text-2xl font-bold text-blue-600">{formatCurrency(totalAmount)}</p>
+        <div className="bg-slate-800 rounded-lg border border-slate-700 p-4">
+          <p className="text-sm text-slate-400">Total Volume</p>
+          <p className="text-2xl font-bold text-gold-400">{formatCurrency(totalAmount)}</p>
         </div>
-        <div className="bg-white rounded-lg border border-gray-200 p-4">
-          <p className="text-sm text-gray-500">Purchases</p>
-          <p className="text-2xl font-bold text-orange-600">{purchaseCount}</p>
+        <div className="bg-slate-800 rounded-lg border border-slate-700 p-4">
+          <p className="text-sm text-slate-400">Purchases</p>
+          <p className="text-2xl font-bold text-gold-400">{purchaseCount}</p>
         </div>
-        <div className="bg-white rounded-lg border border-gray-200 p-4">
-          <p className="text-sm text-gray-500">Deposits</p>
-          <p className="text-2xl font-bold text-green-600">{depositCount}</p>
+        <div className="bg-slate-800 rounded-lg border border-slate-700 p-4">
+          <p className="text-sm text-slate-400">Deposits</p>
+          <p className="text-2xl font-bold text-emerald-400">{depositCount}</p>
         </div>
       </div>
 
-      <div className="bg-white rounded-lg border border-gray-200 p-4 mb-6">
+      {/* Filters */}
+      <div className="bg-slate-800 rounded-lg border border-slate-700 p-4 mb-6">
         <div className="flex flex-wrap items-center gap-4">
           <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1">Type</label>
+            <label className="block text-xs font-medium text-slate-400 mb-1">Type</label>
             <select
               value={typeFilter}
               onChange={(e) => setTypeFilter(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="px-3 py-2 border border-slate-600 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gold-500 bg-slate-800 text-slate-100"
             >
               <option value="all">All Types</option>
               <option value="PURCHASE">Purchases</option>
@@ -88,11 +89,11 @@ const TransactionReport = () => {
             </select>
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1">Status</label>
+            <label className="block text-xs font-medium text-slate-400 mb-1">Status</label>
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="px-3 py-2 border border-slate-600 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gold-500 bg-slate-800 text-slate-100"
             >
               <option value="all">All Status</option>
               <option value="COMPLETED">Completed</option>
@@ -100,11 +101,11 @@ const TransactionReport = () => {
             </select>
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1">Sort</label>
+            <label className="block text-xs font-medium text-slate-400 mb-1">Sort</label>
             <select
               value={dateSort}
               onChange={(e) => setDateSort(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="px-3 py-2 border border-slate-600 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gold-500 bg-slate-800 text-slate-100"
             >
               <option value="newest">Newest First</option>
               <option value="oldest">Oldest First</option>
@@ -114,27 +115,29 @@ const TransactionReport = () => {
       </div>
 
       {filtered.length > 0 ? (
-        <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+        <div className="bg-slate-800 rounded-lg border border-slate-700 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-gray-50 border-b border-gray-200">
+              <thead className="bg-slate-900 border-b border-slate-700">
                 <tr>
-                  <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">ID</th>
-                  <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Type</th>
-                  <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Details</th>
-                  <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Amount</th>
-                  <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Status</th>
-                  <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Date</th>
+                  <th className="text-left px-6 py-3 text-sm font-medium text-slate-400">ID</th>
+                  <th className="text-left px-6 py-3 text-sm font-medium text-slate-400">Type</th>
+                  <th className="text-left px-6 py-3 text-sm font-medium text-slate-400">Details</th>
+                  <th className="text-left px-6 py-3 text-sm font-medium text-slate-400">Amount</th>
+                  <th className="text-left px-6 py-3 text-sm font-medium text-slate-400">Status</th>
+                  <th className="text-left px-6 py-3 text-sm font-medium text-slate-400">Date</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200">
+              <tbody className="divide-y divide-slate-700">
                 {filtered.map((t) => (
-                  <tr key={t.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 text-sm text-gray-500">#{t.id}</td>
+                  <tr key={t.id} className="hover:bg-slate-900 transition">
+                    <td className="px-6 py-4 text-sm text-slate-400">#{t.id}</td>
                     <td className="px-6 py-4">
                       <span className={
-                        'text-xs px-2 py-1 rounded-full font-medium ' +
-                        (t.type === 'PURCHASE' ? 'bg-blue-100 text-blue-700' : 'bg-green-100 text-green-700')
+                        'text-xs px-2 py-1 rounded-full font-medium border ' +
+                        (t.type === 'PURCHASE'
+                          ? 'bg-amber-900/30 text-gold-300 border-gold-700'
+                          : 'bg-emerald-900/30 text-emerald-400 border-emerald-800')
                       }>
                         {t.type}
                       </span>
@@ -142,26 +145,28 @@ const TransactionReport = () => {
                     <td className="px-6 py-4">
                       {t.type === 'PURCHASE' ? (
                         <div>
-                          <p className="text-sm font-medium text-gray-900">{t.productName}</p>
-                          <p className="text-xs text-gray-500">{t.buyerName} → {t.sellerName}</p>
+                          <p className="text-sm font-medium text-slate-100">{t.productName}</p>
+                          <p className="text-xs text-slate-400">{t.buyerName} → {t.sellerName}</p>
                         </div>
                       ) : (
                         <div>
-                          <p className="text-sm font-medium text-gray-900">Deposit</p>
-                          <p className="text-xs text-gray-500">by {t.userName}</p>
+                          <p className="text-sm font-medium text-slate-100">Deposit</p>
+                          <p className="text-xs text-slate-400">by {t.userName}</p>
                         </div>
                       )}
                     </td>
-                    <td className="px-6 py-4 font-medium text-gray-900">{formatCurrency(t.amount)}</td>
+                    <td className="px-6 py-4 font-medium text-gold-400">{formatCurrency(t.amount)}</td>
                     <td className="px-6 py-4">
                       <span className={
-                        'text-xs px-2 py-1 rounded-full font-medium ' +
-                        (t.status === 'COMPLETED' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700')
+                        'text-xs px-2 py-1 rounded-full font-medium border ' +
+                        (t.status === 'COMPLETED'
+                          ? 'bg-emerald-900/30 text-emerald-400 border-emerald-800'
+                          : 'bg-amber-900/30 text-gold-400 border-gold-700')
                       }>
                         {t.status}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-500">{formatDate(t.createdAt)}</td>
+                    <td className="px-6 py-4 text-sm text-slate-400">{formatDate(t.createdAt)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -169,10 +174,10 @@ const TransactionReport = () => {
           </div>
         </div>
       ) : (
-        <div className="text-center py-12 bg-white rounded-lg border border-gray-200">
+        <div className="text-center py-12 bg-slate-800 rounded-lg border border-slate-700">
           <div className="text-6xl mb-4">📜</div>
-          <h3 className="text-xl font-semibold text-gray-700">No transactions found</h3>
-          <p className="text-gray-500">Try adjusting your filters</p>
+          <h3 className="text-xl font-semibold text-slate-200">No transactions found</h3>
+          <p className="text-slate-400">Try adjusting your filters</p>
         </div>
       )}
     </div>

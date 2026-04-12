@@ -16,6 +16,8 @@ const routeLabels = {
   'reports': 'Reports',
   'sales': 'Sales Report',
   'purchases': 'Purchase Report',
+  'cart': 'Cart',
+  'checkout': 'Checkout',
 }
 
 const Breadcrumbs = () => {
@@ -26,7 +28,7 @@ const Breadcrumbs = () => {
 
   return (
     <nav className="flex items-center gap-2 text-sm mb-4 flex-wrap">
-      <Link to="/marketplace" className="text-gray-400 hover:text-blue-600 transition">
+      <Link to="/marketplace" className="text-slate-400 hover:text-gold-300 transition">
         Home
       </Link>
 
@@ -38,11 +40,11 @@ const Breadcrumbs = () => {
 
         return (
           <span key={path} className="flex items-center gap-2">
-            <span className="text-gray-300">/</span>
+            <span className="text-slate-500">/</span>
             {isLast ? (
-              <span className="text-gray-700 font-medium">{label}</span>
+              <span className="text-slate-100 font-medium">{label}</span>
             ) : (
-              <Link to={path} className="text-gray-400 hover:text-blue-600 transition">
+              <Link to={path} className="text-slate-400 hover:text-gold-300 transition">
                 {label}
               </Link>
             )}

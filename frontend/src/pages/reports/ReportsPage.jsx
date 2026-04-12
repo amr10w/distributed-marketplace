@@ -13,8 +13,8 @@ const ReportsPage = () => {
     return (
       <div className="text-center py-12">
         <div className="text-6xl mb-4">🔒</div>
-        <h3 className="text-xl font-semibold text-gray-700">Please login to view reports</h3>
-        <Link to="/login" className="text-blue-600 hover:underline mt-2 inline-block">Go to Login</Link>
+        <h3 className="text-xl font-semibold text-slate-200">Please login to view reports</h3>
+        <Link to="/login" className="text-gold-400 hover:underline mt-2 inline-block">Go to Login</Link>
       </div>
     )
   }
@@ -39,7 +39,7 @@ const ReportsPage = () => {
         { label: 'Total Transactions', value: transactions.length },
         { label: 'Total Volume', value: formatCurrency(transactions.reduce((s, t) => s + t.amount, 0)) },
       ],
-      color: 'from-blue-500 to-blue-600',
+      gradient: 'from-gold-400 to-amber-600',
     },
     {
       title: 'Sales Report',
@@ -50,7 +50,7 @@ const ReportsPage = () => {
         { label: 'Total Sales', value: mySales.length },
         { label: 'Revenue', value: formatCurrency(totalRevenue) },
       ],
-      color: 'from-green-500 to-green-600',
+      gradient: 'from-emerald-500 to-emerald-600',
     },
     {
       title: 'Purchase Report',
@@ -61,94 +61,100 @@ const ReportsPage = () => {
         { label: 'Total Purchases', value: myPurchases.length },
         { label: 'Total Spent', value: formatCurrency(totalSpent) },
       ],
-      color: 'from-purple-500 to-purple-600',
+      gradient: 'from-lapis-500 to-lapis-600',
     },
   ]
 
   return (
-    <div>
+    <div className="animate-fade-in">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900">Reports Dashboard</h1>
-        <p className="text-gray-500 mt-1">View detailed reports about your marketplace activity</p>
+        <h1 className="text-3xl font-bold text-slate-100">Reports Dashboard</h1>
+        <p className="text-slate-400 mt-1">View detailed reports about your marketplace activity</p>
       </div>
 
+      {/* Summary Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        <div className="bg-white rounded-lg border border-gray-200 p-5">
+        <div className="bg-slate-800 rounded-lg border border-slate-700 p-5">
           <div className="flex items-center gap-3 mb-2">
-            <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center text-xl">💳</div>
-            <p className="text-sm text-gray-500">Current Balance</p>
+            <div className="w-10 h-10 bg-lapis-50 rounded-lg flex items-center justify-center text-xl">💳</div>
+            <p className="text-sm text-slate-400">Current Balance</p>
           </div>
-          <p className="text-2xl font-bold text-gray-900">{formatCurrency(user.balance)}</p>
+          <p className="text-2xl font-bold text-slate-100">{formatCurrency(user.balance)}</p>
         </div>
-        <div className="bg-white rounded-lg border border-gray-200 p-5">
+        <div className="bg-slate-800 rounded-lg border border-slate-700 p-5">
           <div className="flex items-center gap-3 mb-2">
-            <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center text-xl">💰</div>
-            <p className="text-sm text-gray-500">Total Revenue</p>
+            <div className="w-10 h-10 bg-emerald-900/30 rounded-lg flex items-center justify-center text-xl">💰</div>
+            <p className="text-sm text-slate-400">Total Revenue</p>
           </div>
-          <p className="text-2xl font-bold text-green-600">{formatCurrency(totalRevenue)}</p>
+          <p className="text-2xl font-bold text-emerald-400">{formatCurrency(totalRevenue)}</p>
         </div>
-        <div className="bg-white rounded-lg border border-gray-200 p-5">
+        <div className="bg-slate-800 rounded-lg border border-slate-700 p-5">
           <div className="flex items-center gap-3 mb-2">
-            <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center text-xl">🛒</div>
-            <p className="text-sm text-gray-500">Total Spent</p>
+            <div className="w-10 h-10 bg-red-900/30 rounded-lg flex items-center justify-center text-xl">🛒</div>
+            <p className="text-sm text-slate-400">Total Spent</p>
           </div>
-          <p className="text-2xl font-bold text-red-600">{formatCurrency(totalSpent)}</p>
+          <p className="text-2xl font-bold text-red-400">{formatCurrency(totalSpent)}</p>
         </div>
-        <div className="bg-white rounded-lg border border-gray-200 p-5">
+        <div className="bg-slate-800 rounded-lg border border-slate-700 p-5">
           <div className="flex items-center gap-3 mb-2">
-            <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center text-xl">📦</div>
-            <p className="text-sm text-gray-500">Inventory Value</p>
+            <div className="w-10 h-10 bg-amber-900/30 rounded-lg flex items-center justify-center text-xl">📦</div>
+            <p className="text-sm text-slate-400">Inventory Value</p>
           </div>
-          <p className="text-2xl font-bold text-purple-600">{formatCurrency(inventoryValue)}</p>
+          <p className="text-2xl font-bold text-gold-400">{formatCurrency(inventoryValue)}</p>
         </div>
       </div>
 
+      {/* Report Cards */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
         {reportCards.map((card) => (
           <Link
             key={card.title}
             to={card.link}
-            className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow"
+            className="bg-slate-800 rounded-2xl shadow-sm border border-slate-700 overflow-hidden hover:shadow-lg hover:border-gold-500 transition-all duration-300 group"
           >
-            <div className={'bg-gradient-to-r ' + card.color + ' p-6 text-white'}>
-              <div className="text-3xl mb-2">{card.icon}</div>
-              <h3 className="text-xl font-bold">{card.title}</h3>
-              <p className="text-white/80 text-sm mt-1">{card.description}</p>
+            <div className={'relative bg-gradient-to-r ' + card.gradient + ' p-6 text-white overflow-hidden'}>
+              <div className="absolute inset-0 islamic-pattern opacity-10"></div>
+              <div className="relative">
+                <div className="text-3xl mb-2">{card.icon}</div>
+                <h3 className="text-xl font-bold">{card.title}</h3>
+                <p className="text-white/80 text-sm mt-1">{card.description}</p>
+              </div>
             </div>
             <div className="p-6">
               <div className="grid grid-cols-2 gap-4">
                 {card.stats.map((stat) => (
                   <div key={stat.label}>
-                    <p className="text-xs text-gray-500">{stat.label}</p>
-                    <p className="text-lg font-bold text-gray-900">{stat.value}</p>
+                    <p className="text-xs text-slate-400">{stat.label}</p>
+                    <p className="text-lg font-bold text-slate-100">{stat.value}</p>
                   </div>
                 ))}
               </div>
-              <div className="mt-4 text-blue-600 font-medium text-sm">View Full Report →</div>
+              <div className="mt-4 text-gold-400 font-medium text-sm group-hover:text-gold-300 transition">View Full Report →</div>
             </div>
           </Link>
         ))}
       </div>
 
-      <div className="bg-white rounded-lg border border-gray-200 p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Financial Summary</h2>
+      {/* Financial Summary */}
+      <div className="bg-slate-800 rounded-lg border border-slate-700 p-6">
+        <h2 className="text-lg font-semibold text-slate-100 mb-4">Financial Summary</h2>
         <table className="w-full">
-          <tbody className="divide-y divide-gray-100">
+          <tbody className="divide-y divide-slate-700">
             <tr>
-              <td className="py-3 text-gray-600">Total Deposited</td>
-              <td className="py-3 text-right font-medium text-green-600">+{formatCurrency(totalDeposited)}</td>
+              <td className="py-3 text-slate-300">Total Deposited</td>
+              <td className="py-3 text-right font-medium text-emerald-400">+{formatCurrency(totalDeposited)}</td>
             </tr>
             <tr>
-              <td className="py-3 text-gray-600">Total Revenue from Sales</td>
-              <td className="py-3 text-right font-medium text-green-600">+{formatCurrency(totalRevenue)}</td>
+              <td className="py-3 text-slate-300">Total Revenue from Sales</td>
+              <td className="py-3 text-right font-medium text-emerald-400">+{formatCurrency(totalRevenue)}</td>
             </tr>
             <tr>
-              <td className="py-3 text-gray-600">Total Spent on Purchases</td>
-              <td className="py-3 text-right font-medium text-red-600">-{formatCurrency(totalSpent)}</td>
+              <td className="py-3 text-slate-300">Total Spent on Purchases</td>
+              <td className="py-3 text-right font-medium text-red-400">-{formatCurrency(totalSpent)}</td>
             </tr>
             <tr className="font-bold">
-              <td className="py-3 text-gray-900">Current Balance</td>
-              <td className="py-3 text-right text-blue-600">{formatCurrency(user.balance)}</td>
+              <td className="py-3 text-slate-100">Current Balance</td>
+              <td className="py-3 text-right text-gold-400">{formatCurrency(user.balance)}</td>
             </tr>
           </tbody>
         </table>
