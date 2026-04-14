@@ -1,99 +1,107 @@
--- 01_shard_tables.sql (For Data Nodes Only)
+DROP DATABASE IF EXISTS `marketplace_db`;
+CREATE DATABASE `marketplace_db`
+    CHARACTER SET utf8mb4
+    COLLATE utf8mb4_unicode_ci;
+
+USE `marketplace_db`;
+
+-- ===================================================================
+-- NODE SIDE TABLES
+-- Run the section below on each of node1, node2, node3
+-- (No Spider engine — plain InnoDB storage)
+-- Cross-node FKs (buyer_id, seller_id → User) are omitted intentionally;
+-- enforce these at the application level.
+-- ===================================================================
+
 CREATE TABLE `Item` (
-  `item_id` INT AUTO_INCREMENT,
-  `category_id` INT NOT NULL,
-  `seller_id` INT NOT NULL,
-  `name` VARCHAR(150) NOT NULL,
-  `description` TEXT,
-  `brand` VARCHAR(100),
-  `price` DECIMAL(10, 2) NOT NULL,
-  `status` VARCHAR(20) NOT NULL DEFAULT 'available',
-  `image_url` VARCHAR(500),
-  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`item_id`, `category_id`),
-  CONSTRAINT `chk_item_price` CHECK (`price` > 0)
+    `item_id`           INT             NOT NULL,
+    `store_id`          INT             NOT NULL,
+    `category_id`       INT             NOT NULL,
+    `name`              VARCHAR(200)    NOT NULL,
+    `brand`             VARCHAR(100)    NULL,
+    `description`       TEXT            NULL,
+    `price`             DECIMAL(12, 2)  NOT NULL,
+    `stock_quantity`    INT             NOT NULL DEFAULT 1,
+    `image_url`         VARCHAR(500)    NULL,
+    `status`            ENUM(
+                            'available',
+                            'sold',
+                            'removed'
+                        )               NOT NULL DEFAULT 'available',
+    `created_at`        DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_at`        DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP
+                            ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`item_id`),
+    INDEX `idx_item_store`      (`store_id`),
+    INDEX `idx_item_category`   (`category_id`),
+    INDEX `idx_item_status`     (`status`),
+    INDEX `idx_item_name_brand` (`name`, `brand`),
+    CONSTRAINT `chk_item_price` CHECK (`price` > 0),
+    CONSTRAINT `chk_item_stock` CHECK (`stock_quantity` >= 0)
 );
 
-CREATE INDEX `idx_item_seller` ON `Item` (`seller_id`);
-
-CREATE INDEX `idx_item_status` ON `Item` (`status`);
-
-CREATE TABLE `Inventory` (
-  `inventory_id` INT AUTO_INCREMENT,
-  `item_id` INT NOT NULL,
-  `category_id` INT NOT NULL,
-  `quantity_available` INT NOT NULL DEFAULT 0,
-  `quantity_sold` INT NOT NULL DEFAULT 0,
-  `quantity_reserved` INT NOT NULL DEFAULT 0,
-  `last_updated` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`inventory_id`, `category_id`),
-  UNIQUE (`item_id`, `category_id`),
-  CONSTRAINT `chk_inv_available` CHECK (`quantity_available` >= 0),
-  CONSTRAINT `chk_inv_sold` CHECK (`quantity_sold` >= 0),
-  CONSTRAINT `chk_inv_reserved` CHECK (`quantity_reserved` >= 0),
-  -- Local FK is allowed because both tables live on this node
-  CONSTRAINT `fk_inventory_item` FOREIGN KEY (`item_id`, `category_id`) REFERENCES `Item` (`item_id`, `category_id`) ON DELETE CASCADE
-);
-
-CREATE TABLE `Cart_Item` (
-  `cart_item_id` INT AUTO_INCREMENT,
-  `cart_id` INT NOT NULL,
-  `item_id` INT NOT NULL,
-  `category_id` INT NOT NULL,
-  `quantity` INT NOT NULL DEFAULT 1,
-  `price_at_addition` DECIMAL(10, 2) NOT NULL,
-  `added_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`cart_item_id`, `category_id`),
-  UNIQUE (`cart_id`, `item_id`, `category_id`),
-  CONSTRAINT `chk_cartitem_qty` CHECK (`quantity` > 0),
-  CONSTRAINT `chk_cartitem_price` CHECK (`price_at_addition` > 0),
-  CONSTRAINT `fk_cartitem_item` FOREIGN KEY (`item_id`, `category_id`) REFERENCES `Item` (`item_id`, `category_id`) ON DELETE CASCADE
-);
-
-CREATE TABLE `Store_Item` (
-  `store_item_id` INT AUTO_INCREMENT,
-  `store_id` INT NOT NULL,
-  `item_id` INT NOT NULL,
-  `category_id` INT NOT NULL,
-  `custom_price` DECIMAL(10, 2),
-  `listed_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`store_item_id`, `category_id`),
-  UNIQUE (`store_id`, `item_id`, `category_id`),
-  CONSTRAINT `chk_storeitem_price` CHECK (
-    `custom_price` IS NULL
-    OR `custom_price` > 0
-  ),
-  CONSTRAINT `fk_storeitem_item` FOREIGN KEY (`item_id`, `category_id`) REFERENCES `Item` (`item_id`, `category_id`) ON DELETE CASCADE
-);
+-- ============================================================
 
 CREATE TABLE `Transaction` (
-  `transaction_id` INT AUTO_INCREMENT,
-  `buyer_id` INT NOT NULL,
-  `seller_id` INT NOT NULL,
-  `item_id` INT NOT NULL,
-  `category_id` INT NOT NULL,
-  `cart_id` INT,
-  `quantity` INT NOT NULL DEFAULT 1,
-  `amount` DECIMAL(12, 2) NOT NULL,
-  `type` VARCHAR(20) NOT NULL DEFAULT 'purchase',
-  `status` VARCHAR(20) NOT NULL DEFAULT 'pending',
-  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`transaction_id`, `category_id`),
-  CONSTRAINT `chk_txn_amount` CHECK (`amount` > 0),
-  CONSTRAINT `chk_txn_quantity` CHECK (`quantity` > 0),
-  CONSTRAINT `chk_txn_not_self` CHECK (`buyer_id` <> `seller_id`),
-  CONSTRAINT `fk_txn_item` FOREIGN KEY (`item_id`, `category_id`) REFERENCES `Item` (`item_id`, `category_id`)
+    `transaction_id`    INT             NOT NULL,
+    `buyer_id`          INT             NOT NULL,
+    `seller_id`         INT             NULL,
+    `category_id`       INT             NOT NULL,
+    `item_id`           INT             NULL,
+    `amount`            DECIMAL(12, 2)  NOT NULL,
+    `transaction_type`  ENUM(
+                            'purchase',
+                            'deposit',
+                            'refund'
+                        )               NOT NULL DEFAULT 'purchase',
+    `status`            ENUM(
+                            'pending',
+                            'completed',
+                            'failed',
+                            'refunded'
+                        )               NOT NULL DEFAULT 'pending',
+    `created_at`        DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_at`        DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP
+                            ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`transaction_id`),
+    INDEX `idx_txn_buyer`     (`buyer_id`),
+    INDEX `idx_txn_seller`    (`seller_id`),
+    INDEX `idx_txn_item`      (`item_id`),
+    INDEX `idx_txn_status`    (`status`),
+    INDEX `idx_txn_timestamp` (`created_at`),
+    CONSTRAINT `fk_txn_item`
+        FOREIGN KEY (`item_id`) REFERENCES `Item` (`item_id`)
+        ON DELETE RESTRICT
+        ON UPDATE CASCADE,
+    CONSTRAINT `chk_txn_amount` CHECK (`amount` > 0)
 );
 
-CREATE INDEX `idx_txn_buyer` ON `Transaction` (`buyer_id`);
+DELIMITER $$
+CREATE TRIGGER `trg_transaction_before_insert`
+BEFORE INSERT ON `Transaction`
+FOR EACH ROW
+BEGIN
+    IF NEW.`buyer_id` = NEW.`seller_id` THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'buyer_id and seller_id cannot be the same user';
+    END IF;
+END$$
+DELIMITER ;
 
-CREATE INDEX `idx_txn_seller` ON `Transaction` (`seller_id`);
+-- ============================================================
 
-CREATE INDEX `idx_txn_item` ON `Transaction` (`item_id`, `category_id`);
+CREATE TABLE `CartItem` (
+    `cart_item_id`  INT     NOT NULL AUTO_INCREMENT,
+    `cart_id`       INT     NOT NULL,
+    `item_id`       INT     NOT NULL,
+    `quantity`      INT     NOT NULL DEFAULT 1,
+    PRIMARY KEY (`cart_item_id`),
+    UNIQUE INDEX `idx_cart_item_unique` (`cart_id`, `item_id`),
+    INDEX `idx_cartitem_item` (`item_id`),
+    CONSTRAINT `fk_cartitem_item`
+        FOREIGN KEY (`item_id`) REFERENCES `Item` (`item_id`)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE,
+    CONSTRAINT `chk_cartitem_qty` CHECK (`quantity` > 0)
+);
 
-CREATE INDEX `idx_txn_status` ON `Transaction` (`status`);
-
-CREATE INDEX `idx_txn_created` ON `Transaction` (`created_at`);
-
-CREATE INDEX `idx_txn_cart` ON `Transaction` (`cart_id`);
