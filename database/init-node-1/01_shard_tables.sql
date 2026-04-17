@@ -98,10 +98,6 @@ CREATE TABLE `CartItem` (
     PRIMARY KEY (`cart_item_id`),
     UNIQUE INDEX `idx_cart_item_unique` (`cart_id`, `item_id`),
     INDEX `idx_cartitem_item` (`item_id`),
-    CONSTRAINT `fk_cartitem_item`
-        FOREIGN KEY (`item_id`) REFERENCES `Item` (`item_id`)
-        ON DELETE CASCADE
-        ON UPDATE CASCADE,
     CONSTRAINT `chk_cartitem_qty` CHECK (`quantity` > 0)
 );
 
