@@ -214,6 +214,21 @@ CREATE TABLE `Message` (
         ON DELETE CASCADE
         ON UPDATE CASCADE
 );
+CREATE TABLE `CartItem` (
+    `cart_item_id`  INT         NOT NULL AUTO_INCREMENT,
+    `cart_id`       INT         NOT NULL,
+    `item_id`       INT         NOT NULL,
+    `quantity`      INT         NOT NULL DEFAULT 1,
+    -- FIX: Included cart_id in the Primary Key
+    PRIMARY KEY (`cart_item_id`, `cart_id`), 
+    INDEX `idx_cartitem_cart` (`cart_id`),
+    INDEX `idx_cartitem_item` (`item_id`)
+) ENGINE = SPIDER COMMENT = 'wrapper "mysql", table "CartItem"'
+PARTITION BY HASH (`cart_id`) (
+    PARTITION `p1` COMMENT = 'srv "node1"',
+    PARTITION `p2` COMMENT = 'srv "node2"',
+    PARTITION `p3` COMMENT = 'srv "node3"'
+);
 
 -- ============================================================
 -- DISTRIBUTED TABLES (Spider engine — partitioned by category_id)
