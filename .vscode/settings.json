@@ -1,0 +1,108 @@
+{
+    "dbcode.connections": [
+        {
+            "connectionId": "qZpt0hElxzzNJ_qAgfay5",
+            "name": "Market_coordinator",
+            "driver": "mariadb",
+            "color": "#0074B3",
+            "connectionType": "host",
+            "host": "127.0.0.1",
+            "port": 3310,
+            "ssl": false,
+            "authMethod": "password",
+            "username": "root",
+            "password": "",
+            "savePassword": "secretStorage",
+            "readOnly": false,
+            "postConnectionSqlType": "inline",
+            "connectionTimeout": 30,
+            "pinnedConnectionTimeout": "0",
+            "driverOptions": {
+                "retrievePublickey": true,
+                "disableMultiStatements": false,
+                "permitLocalInfile": false
+            },
+            "introspection": {
+                "progressive": false
+            }
+        },
+        {
+            "connectionId": "s0I6wsCrvkqphJ5_4F7Vz",
+            "name": "Node_1_storage",
+            "driver": "mariadb",
+            "color": "#004A37",
+            "connectionType": "host",
+            "host": "127.0.0.1",
+            "port": 3307,
+            "ssl": false,
+            "authMethod": "password",
+            "username": "root",
+            "password": "",
+            "savePassword": "secretStorage",
+            "readOnly": false,
+            "postConnectionSqlType": "inline",
+            "connectionTimeout": 30,
+            "pinnedConnectionTimeout": "0",
+            "driverOptions": {
+                "retrievePublickey": true,
+                "disableMultiStatements": false,
+                "permitLocalInfile": false
+            },
+            "introspection": {
+                "progressive": false
+            }
+        },
+        {
+            "connectionId": "8RKs-suDLG_mvVNIucez6",
+            "name": "Node_2_storage",
+            "driver": "mariadb",
+            "color": "#007D5D",
+            "connectionType": "host",
+            "host": "127.0.0.1",
+            "port": 3308,
+            "ssl": false,
+            "authMethod": "password",
+            "username": "root",
+            "password": "",
+            "savePassword": "secretStorage",
+            "readOnly": false,
+            "postConnectionSqlType": "inline",
+            "connectionTimeout": 30,
+            "pinnedConnectionTimeout": "0",
+            "driverOptions": {
+                "retrievePublickey": true,
+                "disableMultiStatements": false,
+                "permitLocalInfile": false
+            },
+            "introspection": {
+                "progressive": false
+            }
+        },
+        {
+            "connectionId": "9iuG9n_ysX6dxAFwNlPDz",
+            "name": "Node_3_storage",
+            "driver": "mariadb",
+            "color": "#007D5D",
+            "connectionType": "host",
+            "host": "127.0.0.1",
+            "port": 3309,
+            "ssl": false,
+            "authMethod": "password",
+            "username": "root",
+            "password": "",
+            "savePassword": "secretStorage",
+            "readOnly": false,
+            "postConnectionSqlType": "inline",
+            "connectionTimeout": 30,
+            "pinnedConnectionTimeout": "0",
+            "driverOptions": {
+                "retrievePublickey": true,
+                "disableMultiStatements": false,
+                "permitLocalInfile": false
+            },
+            "introspection": {
+                "progressive": false
+            }
+        }
+    ]
+}
