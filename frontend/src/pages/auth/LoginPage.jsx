@@ -3,44 +3,33 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
 
 const LoginPage = () => {
-  const [email, setEmail] = useState('')
+  const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const { login } = useAuth()
   const navigate = useNavigate()
 
-  const testAccounts = [
-    { email: 'john@example.com', role: 'Seller - Electronics', name: 'John Doe' },
-    { email: 'jane@example.com', role: 'Seller - Books', name: 'Jane Smith' },
-    { email: 'bob@example.com', role: 'Seller - Sports', name: 'Bob Wilson' },
-    { email: 'sarah@example.com', role: 'Customer', name: 'Sarah Johnson' },
-    { email: 'mike@example.com', role: 'Customer', name: 'Mike Chen' },
-  ]
-
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
 
-    if (!email || !password) {
+    if (!username || !password) {
       setError('Please fill in all fields')
       return
     }
 
     setLoading(true)
-    const result = login(email, password)
-
-    if (result.success) {
-      navigate('/marketplace')
-    } else {
-      setError(result.error)
+    try {
+      const result = await login(username, password)
+      if (result.success) {
+        navigate('/marketplace')
+      } else {
+        setError(result.error)
+      }
+    } finally {
+      setLoading(false)
     }
-    setLoading(false)
-  }
-
-  const quickLogin = (testEmail) => {
-    setEmail(testEmail)
-    setPassword('password123')
   }
 
   return (
@@ -51,7 +40,7 @@ const LoginPage = () => {
 
       <div className="w-full max-w-md relative z-10">
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gold-400">🕌 MarketPlace</h1>
+          <h1 className="text-4xl font-bold text-gold-400">  MarketPlace</h1>
           <p className="text-slate-400 mt-2">Welcome back! Login to your account</p>
         </div>
 
@@ -71,12 +60,12 @@ const LoginPage = () => {
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label className="block text-sm font-medium text-slate-200 mb-1">Email Address</label>
+              <label className="block text-sm font-medium text-slate-200 mb-1">Username</label>
               <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="john@example.com"
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="john_doe"
                 className="w-full px-4 py-3 border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-gold-500 focus:border-transparent transition bg-slate-900 text-slate-100 placeholder:text-slate-500"
               />
             </div>
@@ -100,34 +89,6 @@ const LoginPage = () => {
               {loading ? 'Logging in...' : 'Login'}
             </button>
           </form>
-
-          <div className="mt-6">
-            <p className="text-xs font-medium text-slate-400 mb-3">Quick Login (click to fill):</p>
-            <div className="space-y-2">
-              {testAccounts.map((acc) => (
-                <button
-                  key={acc.email}
-                  onClick={() => quickLogin(acc.email)}
-                  className="w-full flex items-center justify-between px-3 py-2 bg-slate-900 hover:bg-amber-900/30 rounded-lg text-left transition text-sm border border-transparent hover:border-gold-700"
-                >
-                  <div>
-                    <span className="font-medium text-slate-100">{acc.name}</span>
-                    <span className="text-slate-500 mx-2">·</span>
-                    <span className="text-slate-400">{acc.email}</span>
-                  </div>
-                  <span className={
-                    'text-xs px-2 py-0.5 rounded-full font-medium ' +
-                    (acc.role.includes('Customer')
-                      ? 'bg-emerald-900/30 text-emerald-400 border border-emerald-800'
-                      : 'bg-amber-900/30 text-gold-300 border border-gold-700')
-                  }>
-                    {acc.role}
-                  </span>
-                </button>
-              ))}
-            </div>
-            <p className="text-xs text-slate-500 mt-2">Password for all: password123</p>
-          </div>
 
           <p className="text-center text-sm text-slate-400 mt-6">
             Do not have an account?{' '}

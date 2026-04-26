@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
-import { useProducts } from '../../hooks/useProducts'
 import { useAuth } from '../../hooks/useAuth'
 import { useToast } from '../../hooks/useToast'
-import { PRODUCT_CATEGORIES } from '../../lib/constants'
+import { PRODUCT_CATEGORIES, CATEGORY_IDS } from '../../lib/constants'
+import { itemsApi } from '../../api/itemsApi'
 
 const SAMPLE_IMAGES = [
   'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&h=300&fit=crop',
@@ -29,7 +29,6 @@ const AddEditItemPage = () => {
   const { id } = useParams()
   const navigate = useNavigate()
   const { user } = useAuth()
-  const { getProductById, addProduct, updateProduct } = useProducts()
   const toast = useToast()
   const isEditing = Boolean(id)
 
@@ -46,11 +45,27 @@ const AddEditItemPage = () => {
   const [imagePreview, setImagePreview] = useState('')
   const [imageMethod, setImageMethod] = useState('url')
   const [previewError, setPreviewError] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
+  const [loadingItem, setLoadingItem] = useState(false)
 
   useEffect(() => {
-    if (isEditing) {
-      const product = getProductById(id)
-      if (product) {
+    if (!isEditing || !user) return
+    let cancelled = false
+    setLoadingItem(true)
+    setError('')
+    itemsApi
+      .getUserInventory({ ownerId: user.id })
+      .then((result) => {
+        if (cancelled) return
+        if (!result.success) {
+          setError(result.error)
+          return
+        }
+        const product = result.items.find((p) => p.id === parseInt(id))
+        if (!product) {
+          setError('Item not found')
+          return
+        }
         setFormData({
           name: product.name,
           brand: product.brand,
@@ -61,9 +76,15 @@ const AddEditItemPage = () => {
           image: product.image,
         })
         setImagePreview(product.image)
-      }
-    }
-  }, [id, isEditing, getProductById])
+      })
+      .catch((err) => {
+        if (!cancelled) setError(err.message || 'Network error')
+      })
+      .finally(() => {
+        if (!cancelled) setLoadingItem(false)
+      })
+    return () => { cancelled = true }
+  }, [id, isEditing, user])
 
   if (!user) {
     return (
@@ -71,6 +92,19 @@ const AddEditItemPage = () => {
         <div className="text-6xl mb-4">🔒</div>
         <h3 className="text-xl font-semibold text-slate-100">Please login first</h3>
         <Link to="/login" className="text-gold-400 hover:underline mt-2 inline-block">Go to Login</Link>
+      </div>
+    )
+  }
+
+  if (!isEditing && !user.storeId) {
+    return (
+      <div className="text-center py-12">
+        <div className="text-6xl mb-4">🏪</div>
+        <h3 className="text-xl font-semibold text-slate-100">Create your store first</h3>
+        <p className="text-slate-400 mt-2">You need a store before you can list items.</p>
+        <Link to="/store/settings" className="text-gold-400 hover:underline mt-2 inline-block">
+          Go to Store Settings
+        </Link>
       </div>
     )
   }
@@ -106,47 +140,82 @@ const AddEditItemPage = () => {
     return 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&h=300&fit=crop'
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
 
-    if (!formData.name || !formData.brand || !formData.price || !formData.quantity) {
+    if (!formData.name || !formData.price || !formData.quantity) {
       setError('Please fill in all required fields')
       toast.error('Please fill in all required fields')
       return
     }
 
-    if (parseFloat(formData.price) <= 0) {
+    const price = parseFloat(formData.price)
+    const quantity = parseInt(formData.quantity)
+
+    if (price <= 0) {
       setError('Price must be greater than 0')
       return
     }
 
-    if (parseInt(formData.quantity) < 0) {
+    if (quantity < 0) {
       setError('Quantity cannot be negative')
       return
     }
 
     const finalImage = formData.image || getDefaultImage()
 
-    const productData = {
-      name: formData.name,
-      brand: formData.brand,
-      description: formData.description,
-      price: parseFloat(formData.price),
-      quantity: parseInt(formData.quantity),
-      category: formData.category,
-      image: finalImage,
-      sellerId: user.id,
-      sellerName: user.fullName,
-      storeName: user.storeName || user.fullName + "'s Store",
+    if (isEditing) {
+      setSubmitting(true)
+      try {
+        const result = await itemsApi.editItem({
+          requestingUserId: user.id,
+          itemId: parseInt(id),
+          name: formData.name,
+          description: formData.description || null,
+          price,
+        })
+        if (!result.success) {
+          setError(result.error)
+          toast.error(result.error)
+          return
+        }
+        toast.success('Product updated successfully!')
+        navigate('/seller/items')
+      } catch (err) {
+        setError(err.message || 'Network error')
+      } finally {
+        setSubmitting(false)
+      }
+      return
     }
 
-    if (isEditing) {
-      updateProduct(id, productData)
-      toast.success('Product updated successfully!')
-      navigate('/seller/items')
-    } else {
-      addProduct(productData)
+    const categoryId = CATEGORY_IDS[formData.category]
+    if (!categoryId) {
+      setError('Unknown category')
+      return
+    }
+
+    setSubmitting(true)
+    try {
+      const result = await itemsApi.addItem({
+        requestingUserId: user.id,
+        storeId: user.storeId,
+        categoryId,
+        name: formData.name,
+        brand: formData.brand || null,
+        description: formData.description || null,
+        price,
+        stockQuantity: quantity,
+        imageUrl: finalImage || null,
+      })
+
+      if (!result.success) {
+        setError(result.error)
+        toast.error(result.error)
+        return
+      }
+
       toast.success('Product added successfully!')
       setFormData({
         name: '',
@@ -159,6 +228,10 @@ const AddEditItemPage = () => {
       })
       setImagePreview('')
       setPreviewError(false)
+    } catch (err) {
+      setError(err.message || 'Network error')
+    } finally {
+      setSubmitting(false)
     }
   }
 
@@ -178,6 +251,16 @@ const AddEditItemPage = () => {
 
         {error && (
           <div className="bg-red-900/30 border border-red-800 text-red-400 px-4 py-3 rounded-lg mb-4 text-sm">{error}</div>
+        )}
+
+        {isEditing && (
+          <div className="bg-slate-900/60 border border-slate-700 text-slate-300 px-4 py-3 rounded-lg mb-4 text-xs">
+            Only name, description, and price can be updated. Brand, category, quantity, and image are locked once an item is listed.
+          </div>
+        )}
+
+        {loadingItem && (
+          <div className="text-slate-400 text-sm mb-4">Loading item…</div>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-5">
@@ -205,7 +288,8 @@ const AddEditItemPage = () => {
               value={formData.brand}
               onChange={handleChange}
               placeholder="e.g. Apple"
-              className="w-full px-4 py-3 border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-gold-500 focus:border-transparent transition bg-slate-800 text-slate-100"
+              disabled={isEditing}
+              className="w-full px-4 py-3 border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-gold-500 focus:border-transparent transition bg-slate-800 text-slate-100 disabled:opacity-50 disabled:cursor-not-allowed"
             />
           </div>
 
@@ -215,7 +299,8 @@ const AddEditItemPage = () => {
               name="category"
               value={formData.category}
               onChange={handleChange}
-              className="w-full px-4 py-3 border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-gold-500 focus:border-transparent transition bg-slate-800 text-slate-100"
+              disabled={isEditing}
+              className="w-full px-4 py-3 border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-gold-500 focus:border-transparent transition bg-slate-800 text-slate-100 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {PRODUCT_CATEGORIES.map((cat) => (
                 <option key={cat} value={cat}>{cat}</option>
@@ -250,7 +335,8 @@ const AddEditItemPage = () => {
                 onChange={handleChange}
                 placeholder="0"
                 min="0"
-                className="w-full px-4 py-3 border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-gold-500 focus:border-transparent transition bg-slate-800 text-slate-100"
+                disabled={isEditing}
+                className="w-full px-4 py-3 border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-gold-500 focus:border-transparent transition bg-slate-800 text-slate-100 disabled:opacity-50 disabled:cursor-not-allowed"
               />
             </div>
           </div>
@@ -272,6 +358,7 @@ const AddEditItemPage = () => {
             <label className="block text-sm font-medium text-slate-200 mb-2">Product Image</label>
 
             {/* Image Method Tabs */}
+            {!isEditing && (
             <div className="flex gap-2 mb-3">
               <button
                 type="button"
@@ -298,8 +385,9 @@ const AddEditItemPage = () => {
                 🖼️ Pick from Gallery
               </button>
             </div>
+            )}
 
-            {imageMethod === 'url' && (
+            {!isEditing && imageMethod === 'url' && (
               <div>
                 <input
                   type="text"
@@ -322,7 +410,7 @@ const AddEditItemPage = () => {
               </div>
             )}
 
-            {imageMethod === 'gallery' && (
+            {!isEditing && imageMethod === 'gallery' && (
               <div className="grid grid-cols-3 gap-2">
                 {SAMPLE_IMAGES.map((url, index) => (
                   <button
@@ -414,7 +502,7 @@ const AddEditItemPage = () => {
                     </button>
                   </div>
                 )}
-                {imagePreview && !previewError && (
+                {!isEditing && imagePreview && !previewError && (
                   <button
                     type="button"
                     onClick={() => {
@@ -434,9 +522,10 @@ const AddEditItemPage = () => {
           <div className="flex gap-3 pt-2">
             <button
               type="submit"
-              className="flex-1 bg-gold-500 text-white py-3 rounded-lg font-medium hover:bg-gold-600 transition shadow-md"
+              disabled={submitting}
+              className="flex-1 bg-gold-500 text-white py-3 rounded-lg font-medium hover:bg-gold-600 transition shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isEditing ? 'Update Item' : 'Add Item'}
+              {submitting ? 'Saving...' : isEditing ? 'Update Item' : 'Add Item'}
             </button>
             <button
               type="button"
