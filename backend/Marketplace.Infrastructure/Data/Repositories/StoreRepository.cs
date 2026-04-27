@@ -25,8 +25,15 @@ namespace MarketPlace.Infrastructure.Data.Repositories
         public async Task<Store?> GetByIdAsync(int storeId)
         {
             return await _db.Stores
-                            .AsNoTracking() // Good practice for read-only queries
+                            .AsNoTracking()
                             .FirstOrDefaultAsync(s => s.StoreId == storeId);
+        }
+
+        public async Task<Store?> GetByOwnerIdAsync(int ownerId)
+        {
+            return await _db.Stores
+                            .AsNoTracking()
+                            .FirstOrDefaultAsync(s => s.OwnerId == ownerId);
         }
     }
 }
