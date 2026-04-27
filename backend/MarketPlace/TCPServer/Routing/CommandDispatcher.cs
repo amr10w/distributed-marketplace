@@ -55,6 +55,7 @@ namespace MarketPlace.Backend.TCPServer.Routing
                 var getUserCartQueryHandler = scope.ServiceProvider.GetRequiredService<GetUserCartQueryHandler>();
                 var getUsertInventoryQueryHandler = scope.ServiceProvider.GetRequiredService<GetUserInventoryQueryHandler>();
                 var searchItemsQueryHandler = scope.ServiceProvider.GetRequiredService<SearchItemsQueryHandler>();
+                var getAllItemsQueryHandler = scope.ServiceProvider.GetRequiredService<GetAllItemsQueryHandler>();
 
 
                 switch (request.Command?.ToUpperInvariant())
@@ -87,6 +88,8 @@ namespace MarketPlace.Backend.TCPServer.Routing
                         return await getUsertInventoryQueryHandler.HandleAsync(request);
                     case "SEARCH_ITEMS":
                         return await searchItemsQueryHandler.HandleAsync(request);
+                    case "GET_ALL_ITEMS":
+                        return await getAllItemsQueryHandler.HandleAsync(request);
                     default:
                         return BuildResponse(
                             request.CorrelationId,

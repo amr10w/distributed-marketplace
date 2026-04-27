@@ -1,4 +1,4 @@
-﻿using MarketPlace.Application.DTOs;
+using MarketPlace.Application.DTOs;
 using MarketPlace.Domain.Repositories;
 using System.Linq;
 using System.Text.Json;
@@ -6,12 +6,12 @@ using System.Threading.Tasks;
 
 namespace MarketPlace.Application.Queries
 {
-    public class SearchItemsQueryHandler
+    public class GetAllItemsQueryHandler
     {
         private readonly IItemRepository _itemRepository;
         private readonly IStoreRepository _storeRepository;
 
-        public SearchItemsQueryHandler(IItemRepository itemRepository, IStoreRepository storeRepository)
+        public GetAllItemsQueryHandler(IItemRepository itemRepository, IStoreRepository storeRepository)
         {
             _itemRepository = itemRepository;
             _storeRepository = storeRepository;
@@ -19,18 +19,7 @@ namespace MarketPlace.Application.Queries
 
         public async Task<JsonEnvelope> HandleAsync(JsonEnvelope request)
         {
-            var payload = JsonSerializer.Deserialize<SearchItemPayload>(request.Payload);
-            if (payload is null || string.IsNullOrWhiteSpace(payload.SearchTerm))
-            {
-                return new JsonEnvelope
-                {
-                    CorrelationId = request.CorrelationId,
-                    Command = "SEARCH_FAILED",
-                    Payload = JsonSerializer.Serialize(new { Message = "Invalid search term" })
-                };
-            }
-
-            var items = (await _itemRepository.SearchAvailableItemsAsync(payload.SearchTerm)).ToList();
+            var items = (await _itemRepository.GetAllAvailableAsync()).ToList();
             var storeMap = (await _storeRepository.GetAllAsync())
                 .ToDictionary(s => s.StoreId);
 
@@ -59,10 +48,9 @@ namespace MarketPlace.Application.Queries
             return new JsonEnvelope
             {
                 CorrelationId = request.CorrelationId,
-                Command = "SEARCH_ITEMS_SUCCESS",
+                Command = "GET_ALL_ITEMS_SUCCESS",
                 Payload = JsonSerializer.Serialize(new { Items = enriched })
             };
         }
     }
-    public record SearchItemPayload(string SearchTerm);
 }

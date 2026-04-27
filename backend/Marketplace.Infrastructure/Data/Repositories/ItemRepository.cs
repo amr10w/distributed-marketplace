@@ -90,5 +90,11 @@ namespace MarketPlace.Infrastructure.Data.Repositories
                             .Where(i => storeIds.Contains(i.StoreId))
                             .ToListAsync();
         }
+
+        public async Task<IEnumerable<Item>> GetAllAvailableAsync()
+            => await _db.Items
+                        .AsNoTracking()
+                        .Where(i => i.Status == ItemStatus.available && i.StockQuantity > 0)
+                        .ToListAsync();
     }
 }

@@ -28,6 +28,7 @@ builder.Services.AddScoped<RemoveFromCartCommandHandler>();
 builder.Services.AddScoped<GetUserCartQueryHandler>();
 builder.Services.AddScoped<GetUserInventoryQueryHandler>();
 builder.Services.AddScoped<SearchItemsQueryHandler>();
+builder.Services.AddScoped<GetAllItemsQueryHandler>();
 
 // --- 1. Register Infrastructure and Application Services ---
 // builder.Services.AddInfrastructure(); // Extension method to add DB/Repositories

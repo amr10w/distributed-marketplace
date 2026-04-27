@@ -35,5 +35,8 @@ namespace MarketPlace.Infrastructure.Data.Repositories
                             .AsNoTracking()
                             .FirstOrDefaultAsync(s => s.OwnerId == ownerId);
         }
+
+        public async Task<IEnumerable<Store>> GetAllAsync()
+            => await _db.Stores.AsNoTracking().ToListAsync();
     }
 }
