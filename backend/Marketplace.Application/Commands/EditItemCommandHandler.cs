@@ -47,6 +47,15 @@ namespace MarketPlace.Application.Commands
             item.Price = payload.Price ?? item.Price;
             item.Status = payload.Status ?? item.Status;
 
+            if (payload.StockQuantity.HasValue)
+            {
+                item.StockQuantity = payload.StockQuantity.Value;
+                if (item.StockQuantity == 0)
+                    item.Status = ItemStatus.sold;
+                else if (item.Status == ItemStatus.sold)
+                    item.Status = ItemStatus.available;
+            }
+
             // 4. Save updated item
             if (store.OwnerId != payload.RequestingUserId)
             {
@@ -79,6 +88,7 @@ namespace MarketPlace.Application.Commands
         string? Name,
         string? Description,
         decimal? Price,
-        ItemStatus? Status
+        ItemStatus? Status,
+        int? StockQuantity
     );
 }

@@ -58,6 +58,7 @@ namespace MarketPlace.Backend.TCPServer.Routing
                 var getAllItemsQueryHandler = scope.ServiceProvider.GetRequiredService<GetAllItemsQueryHandler>();
                 var getItemByIdQueryHandler = scope.ServiceProvider.GetRequiredService<GetItemByIdQueryHandler>();
                 var getWalletQueryHandler = scope.ServiceProvider.GetRequiredService<GetWalletQueryHandler>();
+                var getUserTransactionsQueryHandler = scope.ServiceProvider.GetRequiredService<GetUserTransactionsQueryHandler>();
 
 
                 switch (request.Command?.ToUpperInvariant())
@@ -96,6 +97,8 @@ namespace MarketPlace.Backend.TCPServer.Routing
                         return await getItemByIdQueryHandler.HandleAsync(request);
                     case "GET_WALLET":
                         return await getWalletQueryHandler.HandleAsync(request);
+                    case "GET_USER_TRANSACTIONS":
+                        return await getUserTransactionsQueryHandler.HandleAsync(request);
                     default:
                         return BuildResponse(
                             request.CorrelationId,

@@ -31,6 +31,7 @@ builder.Services.AddScoped<SearchItemsQueryHandler>();
 builder.Services.AddScoped<GetAllItemsQueryHandler>();
 builder.Services.AddScoped<GetItemByIdQueryHandler>();
 builder.Services.AddScoped<GetWalletQueryHandler>();
+builder.Services.AddScoped<GetUserTransactionsQueryHandler>();
 
 // --- 1. Register Infrastructure and Application Services ---
 // builder.Services.AddInfrastructure(); // Extension method to add DB/Repositories
