@@ -20,6 +20,8 @@ export const authApi = {
         success: true,
         userId: data.UserId,
         username: data.Username,
+        storeId: data.StoreId ?? null,
+        storeName: data.StoreName ?? '',
       }
     }
     return {

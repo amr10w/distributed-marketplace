@@ -1,6 +1,7 @@
 import { createContext, useState, useEffect } from 'react'
 import usersData from '../mocks/users.json'
 import { authApi } from '../api/authApi'
+import { walletApi } from '../api/walletApi'
 
 const AuthContext = createContext(null)
 
@@ -65,13 +66,15 @@ const AuthProvider = ({ children }) => {
       return { success: false, error: result.error }
     }
 
+    const walletResult = await walletApi.getBalance(result.userId)
     const userData = {
       id: result.userId,
       username: result.username,
       fullName: result.username,
       email: '',
-      balance: 0,
-      storeName: '',
+      balance: walletResult.success ? walletResult.balance : (result.balance ?? 0),
+      storeId: result.storeId || null,
+      storeName: result.storeName || '',
       createdAt: new Date().toISOString(),
     }
     setUser(userData)
@@ -124,6 +127,14 @@ const AuthProvider = ({ children }) => {
     }
   }
 
+  const setBalance = (newBalance) => {
+    if (user) {
+      const updatedUser = { ...user, balance: newBalance }
+      setUser(updatedUser)
+      localStorage.setItem(USER_KEY, JSON.stringify(updatedUser))
+    }
+  }
+
   const updateSellerBalance = (sellerId, amount) => {
     setAllUsers((prev) =>
       prev.map((u) =>
@@ -172,6 +183,7 @@ const AuthProvider = ({ children }) => {
         register,
         logout,
         updateBalance,
+        setBalance,
         updateSellerBalance,
         updateUserStore,
         getUserById,
