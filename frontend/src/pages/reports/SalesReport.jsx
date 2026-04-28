@@ -1,13 +1,12 @@
 import { useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
-import { useProducts } from '../../hooks/useProducts'
-import { useTransactions } from '../../hooks/useTransactions'
+import { useReportData } from '../../hooks/useReportData'
 import { formatCurrency, formatDate } from '../../lib/utils'
+import LoadingSpinner from '../../components/common/LoadingSpinner'
 
 const SalesReport = () => {
   const { user } = useAuth()
-  const { products } = useProducts()
-  const { getSalesByUser } = useTransactions()
+  const { items, sales, loading } = useReportData()
   const navigate = useNavigate()
 
   if (!user) {
@@ -20,20 +19,19 @@ const SalesReport = () => {
     )
   }
 
-  const mySales = getSalesByUser(user.id)
-  const myProducts = products.filter((p) => p.sellerId === user.id)
+  if (loading) return <LoadingSpinner />
 
-  const totalRevenue = mySales.reduce((sum, t) => sum + t.amount, 0)
-  const avgSaleValue = mySales.length > 0 ? totalRevenue / mySales.length : 0
-  const highestSale = mySales.length > 0 ? Math.max(...mySales.map((t) => t.amount)) : 0
+  const totalRevenue = sales.reduce((sum, t) => sum + t.amount, 0)
+  const avgSaleValue = sales.length > 0 ? totalRevenue / sales.length : 0
+  const highestSale = sales.length > 0 ? Math.max(...sales.map((t) => t.amount)) : 0
 
+  // Group sales by product name
   const productSales = {}
-  mySales.forEach((t) => {
-    if (!productSales[t.productName]) {
-      productSales[t.productName] = { count: 0, revenue: 0 }
-    }
-    productSales[t.productName].count += (t.quantity || 1)
-    productSales[t.productName].revenue += t.amount
+  sales.forEach((t) => {
+    const key = t.productName || 'Unknown'
+    if (!productSales[key]) productSales[key] = { count: 0, revenue: 0 }
+    productSales[key].count++
+    productSales[key].revenue += t.amount
   })
 
   return (
@@ -53,7 +51,7 @@ const SalesReport = () => {
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-6">
         <div className="bg-slate-800 rounded-lg border border-slate-700 p-4">
           <p className="text-sm text-slate-400">Total Sales</p>
-          <p className="text-2xl font-bold text-slate-100">{mySales.length}</p>
+          <p className="text-2xl font-bold text-slate-100">{sales.length}</p>
         </div>
         <div className="bg-slate-800 rounded-lg border border-slate-700 p-4">
           <p className="text-sm text-slate-400">Total Revenue</p>
@@ -80,17 +78,19 @@ const SalesReport = () => {
                 .map(([name, data]) => (
                   <div key={name}>
                     <div className="flex items-center justify-between mb-1">
-                      <span className="font-medium text-slate-100">{name}</span>
-                      <span className="text-sm font-medium text-emerald-400">{formatCurrency(data.revenue)}</span>
+                      <span className="font-medium text-slate-100 truncate mr-2">{name}</span>
+                      <span className="text-sm font-medium text-emerald-400 shrink-0">
+                        {formatCurrency(data.revenue)}
+                      </span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <div className="flex-1 bg-slate-800 rounded-full h-2">
+                      <div className="flex-1 bg-slate-700 rounded-full h-2">
                         <div
-                          className="bg-emerald-900/300 rounded-full h-2 transition-all"
-                          style={{ width: Math.min(100, (data.revenue / totalRevenue * 100)) + '%' }}
-                        ></div>
+                          className="bg-emerald-500 rounded-full h-2 transition-all"
+                          style={{ width: totalRevenue > 0 ? Math.min(100, (data.revenue / totalRevenue) * 100) + '%' : '0%' }}
+                        />
                       </div>
-                      <span className="text-xs text-slate-400">{data.count} sold</span>
+                      <span className="text-xs text-slate-400 shrink-0">{data.count} sale{data.count !== 1 ? 's' : ''}</span>
                     </div>
                   </div>
                 ))}
@@ -102,24 +102,24 @@ const SalesReport = () => {
 
         {/* Listed Products */}
         <div className="bg-slate-800 rounded-lg border border-slate-700 p-6">
-          <h2 className="text-lg font-semibold text-slate-100 mb-4">Listed Products</h2>
-          {myProducts.length > 0 ? (
-            <div className="space-y-3">
-              {myProducts.map((p) => (
+          <h2 className="text-lg font-semibold text-slate-100 mb-4">Listed Products ({items.length})</h2>
+          {items.length > 0 ? (
+            <div className="space-y-3 max-h-64 overflow-y-auto">
+              {items.map((p) => (
                 <div key={p.id} className="flex items-center justify-between py-2 border-b border-slate-700 last:border-0">
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-3 min-w-0">
                     <img
                       src={p.image}
                       alt={p.name}
-                      className="w-8 h-8 rounded object-cover"
+                      className="w-8 h-8 rounded object-cover shrink-0"
                       onError={(e) => { e.target.src = 'https://via.placeholder.com/32x32?text=No' }}
                     />
-                    <div>
-                      <p className="text-sm font-medium text-slate-100">{p.name}</p>
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium text-slate-100 truncate">{p.name}</p>
                       <p className="text-xs text-slate-400">{p.quantity} in stock</p>
                     </div>
                   </div>
-                  <span className="text-sm font-medium text-gold-400">{formatCurrency(p.price)}</span>
+                  <span className="text-sm font-medium text-gold-400 shrink-0 ml-2">{formatCurrency(p.price)}</span>
                 </div>
               ))}
             </div>
@@ -129,29 +129,27 @@ const SalesReport = () => {
         </div>
       </div>
 
-      {/* Sales History Table */}
+      {/* Sales History */}
       <div className="bg-slate-800 rounded-lg border border-slate-700 overflow-hidden">
         <div className="px-6 py-4 border-b border-slate-700">
           <h2 className="text-lg font-semibold text-slate-100">Sales History</h2>
         </div>
-        {mySales.length > 0 ? (
+        {sales.length > 0 ? (
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-slate-900 border-b border-slate-700">
                 <tr>
                   <th className="text-left px-6 py-3 text-sm font-medium text-slate-400">Product</th>
                   <th className="text-left px-6 py-3 text-sm font-medium text-slate-400">Buyer</th>
-                  <th className="text-left px-6 py-3 text-sm font-medium text-slate-400">Qty</th>
                   <th className="text-left px-6 py-3 text-sm font-medium text-slate-400">Revenue</th>
                   <th className="text-left px-6 py-3 text-sm font-medium text-slate-400">Date</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-700">
-                {mySales.map((t) => (
+                {sales.map((t) => (
                   <tr key={t.id} className="hover:bg-slate-900 transition">
-                    <td className="px-6 py-4 font-medium text-slate-100">{t.productName}</td>
-                    <td className="px-6 py-4 text-sm text-slate-300">{t.buyerName}</td>
-                    <td className="px-6 py-4 text-sm text-slate-300">{t.quantity || 1}</td>
+                    <td className="px-6 py-4 font-medium text-slate-100">{t.productName || '—'}</td>
+                    <td className="px-6 py-4 text-sm text-slate-300">{t.buyerName || '—'}</td>
                     <td className="px-6 py-4 text-sm font-medium text-emerald-400">+{formatCurrency(t.amount)}</td>
                     <td className="px-6 py-4 text-sm text-slate-400">{formatDate(t.createdAt)}</td>
                   </tr>

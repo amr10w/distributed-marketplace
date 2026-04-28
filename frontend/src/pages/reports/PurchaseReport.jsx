@@ -1,11 +1,12 @@
 import { useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
-import { useTransactions } from '../../hooks/useTransactions'
+import { useReportData } from '../../hooks/useReportData'
 import { formatCurrency, formatDate } from '../../lib/utils'
+import LoadingSpinner from '../../components/common/LoadingSpinner'
 
 const PurchaseReport = () => {
   const { user } = useAuth()
-  const { getPurchasesByUser } = useTransactions()
+  const { purchases, loading } = useReportData()
   const navigate = useNavigate()
 
   if (!user) {
@@ -18,19 +19,20 @@ const PurchaseReport = () => {
     )
   }
 
-  const myPurchases = getPurchasesByUser(user.id)
-  const totalSpent = myPurchases.reduce((sum, t) => sum + t.amount, 0)
-  const avgPurchase = myPurchases.length > 0 ? totalSpent / myPurchases.length : 0
-  const highestPurchase = myPurchases.length > 0 ? Math.max(...myPurchases.map((t) => t.amount)) : 0
-  const lowestPurchase = myPurchases.length > 0 ? Math.min(...myPurchases.map((t) => t.amount)) : 0
+  if (loading) return <LoadingSpinner />
 
+  const totalSpent = purchases.reduce((sum, t) => sum + t.amount, 0)
+  const avgPurchase = purchases.length > 0 ? totalSpent / purchases.length : 0
+  const highestPurchase = purchases.length > 0 ? Math.max(...purchases.map((t) => t.amount)) : 0
+  const lowestPurchase = purchases.length > 0 ? Math.min(...purchases.map((t) => t.amount)) : 0
+
+  // Group by seller
   const sellerBreakdown = {}
-  myPurchases.forEach((t) => {
-    if (!sellerBreakdown[t.sellerName]) {
-      sellerBreakdown[t.sellerName] = { count: 0, spent: 0 }
-    }
-    sellerBreakdown[t.sellerName].count++
-    sellerBreakdown[t.sellerName].spent += t.amount
+  purchases.forEach((t) => {
+    const key = t.sellerName || 'Unknown'
+    if (!sellerBreakdown[key]) sellerBreakdown[key] = { count: 0, spent: 0 }
+    sellerBreakdown[key].count++
+    sellerBreakdown[key].spent += t.amount
   })
 
   return (
@@ -50,7 +52,7 @@ const PurchaseReport = () => {
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-6">
         <div className="bg-slate-800 rounded-lg border border-slate-700 p-4">
           <p className="text-sm text-slate-400">Total Purchases</p>
-          <p className="text-2xl font-bold text-slate-100">{myPurchases.length}</p>
+          <p className="text-2xl font-bold text-slate-100">{purchases.length}</p>
         </div>
         <div className="bg-slate-800 rounded-lg border border-slate-700 p-4">
           <p className="text-sm text-slate-400">Total Spent</p>
@@ -77,17 +79,21 @@ const PurchaseReport = () => {
                 .map(([seller, data]) => (
                   <div key={seller}>
                     <div className="flex items-center justify-between mb-1">
-                      <span className="font-medium text-slate-100">{seller}</span>
-                      <span className="text-sm font-medium text-slate-200">{formatCurrency(data.spent)}</span>
+                      <span className="font-medium text-slate-100 truncate mr-2">{seller}</span>
+                      <span className="text-sm font-medium text-slate-200 shrink-0">
+                        {formatCurrency(data.spent)}
+                      </span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <div className="flex-1 bg-slate-800 rounded-full h-2">
+                      <div className="flex-1 bg-slate-700 rounded-full h-2">
                         <div
                           className="bg-gold-500 rounded-full h-2 transition-all"
-                          style={{ width: Math.min(100, (data.spent / totalSpent * 100)) + '%' }}
-                        ></div>
+                          style={{ width: totalSpent > 0 ? Math.min(100, (data.spent / totalSpent) * 100) + '%' : '0%' }}
+                        />
                       </div>
-                      <span className="text-xs text-slate-400">{data.count} purchase{data.count !== 1 ? 's' : ''}</span>
+                      <span className="text-xs text-slate-400 shrink-0">
+                        {data.count} purchase{data.count !== 1 ? 's' : ''}
+                      </span>
                     </div>
                   </div>
                 ))}
@@ -97,7 +103,7 @@ const PurchaseReport = () => {
           )}
         </div>
 
-        {/* Summary */}
+        {/* Spending Summary */}
         <div className="bg-slate-800 rounded-lg border border-slate-700 p-6">
           <h2 className="text-lg font-semibold text-slate-100 mb-4">Spending Summary</h2>
           <div className="space-y-3">
@@ -118,36 +124,34 @@ const PurchaseReport = () => {
               <span className="font-medium text-slate-100">{formatCurrency(lowestPurchase)}</span>
             </div>
             <div className="flex justify-between py-2">
-              <span className="text-slate-300">Number of Sellers</span>
+              <span className="text-slate-300">Unique Sellers</span>
               <span className="font-medium text-slate-100">{Object.keys(sellerBreakdown).length}</span>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Purchase History Table */}
+      {/* Purchase History */}
       <div className="bg-slate-800 rounded-lg border border-slate-700 overflow-hidden">
         <div className="px-6 py-4 border-b border-slate-700">
           <h2 className="text-lg font-semibold text-slate-100">Purchase History</h2>
         </div>
-        {myPurchases.length > 0 ? (
+        {purchases.length > 0 ? (
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-slate-900 border-b border-slate-700">
                 <tr>
                   <th className="text-left px-6 py-3 text-sm font-medium text-slate-400">Product</th>
                   <th className="text-left px-6 py-3 text-sm font-medium text-slate-400">Seller</th>
-                  <th className="text-left px-6 py-3 text-sm font-medium text-slate-400">Qty</th>
                   <th className="text-left px-6 py-3 text-sm font-medium text-slate-400">Amount</th>
                   <th className="text-left px-6 py-3 text-sm font-medium text-slate-400">Date</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-700">
-                {myPurchases.map((t) => (
+                {purchases.map((t) => (
                   <tr key={t.id} className="hover:bg-slate-900 transition">
-                    <td className="px-6 py-4 font-medium text-slate-100">{t.productName}</td>
-                    <td className="px-6 py-4 text-sm text-slate-300">{t.sellerName}</td>
-                    <td className="px-6 py-4 text-sm text-slate-300">{t.quantity || 1}</td>
+                    <td className="px-6 py-4 font-medium text-slate-100">{t.productName || '—'}</td>
+                    <td className="px-6 py-4 text-sm text-slate-300">{t.sellerName || '—'}</td>
                     <td className="px-6 py-4 text-sm font-medium text-red-400">-{formatCurrency(t.amount)}</td>
                     <td className="px-6 py-4 text-sm text-slate-400">{formatDate(t.createdAt)}</td>
                   </tr>

@@ -46,6 +46,7 @@ namespace MarketPlace.Application.Commands
             item.Description = payload.Description ?? item.Description;
             item.Price = payload.Price ?? item.Price;
             item.Status = payload.Status ?? item.Status;
+            item.ImageUrl = payload.ImageUrl ?? item.ImageUrl;
 
             if (payload.StockQuantity.HasValue)
             {
@@ -89,6 +90,7 @@ namespace MarketPlace.Application.Commands
         string? Description,
         decimal? Price,
         ItemStatus? Status,
-        int? StockQuantity
+        int? StockQuantity,
+        string? ImageUrl
     );
 }

@@ -84,6 +84,7 @@ export const itemsApi = {
     price,
     status,
     stockQuantity,
+    imageUrl,
   }) => {
     const envelope = await wsClient.send('EDIT_ITEM', {
       ItemId: itemId,
@@ -93,6 +94,7 @@ export const itemsApi = {
       Price: price ?? null,
       Status: status ?? null,
       StockQuantity: stockQuantity ?? null,
+      ImageUrl: imageUrl ?? null,
     })
     const data = parsePayload(envelope)
     if (envelope.Command === 'EDIT_ITEM_SUCCESS' && data.Success) {

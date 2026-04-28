@@ -174,6 +174,7 @@ const AddEditItemPage = () => {
           name: formData.name,
           description: formData.description || null,
           price,
+          imageUrl: formData.image || null,
         })
         if (!result.success) {
           setError(result.error)
@@ -255,7 +256,7 @@ const AddEditItemPage = () => {
 
         {isEditing && (
           <div className="bg-slate-900/60 border border-slate-700 text-slate-300 px-4 py-3 rounded-lg mb-4 text-xs">
-            Only name, description, and price can be updated. Brand, category, quantity, and image are locked once an item is listed.
+            You can update name, description, price, and image. Brand, category, and quantity are locked once listed.
           </div>
         )}
 
@@ -358,7 +359,6 @@ const AddEditItemPage = () => {
             <label className="block text-sm font-medium text-slate-200 mb-2">Product Image</label>
 
             {/* Image Method Tabs */}
-            {!isEditing && (
             <div className="flex gap-2 mb-3">
               <button
                 type="button"
@@ -385,9 +385,8 @@ const AddEditItemPage = () => {
                 🖼️ Pick from Gallery
               </button>
             </div>
-            )}
 
-            {!isEditing && imageMethod === 'url' && (
+            {imageMethod === 'url' && (
               <div>
                 <input
                   type="text"
@@ -410,7 +409,7 @@ const AddEditItemPage = () => {
               </div>
             )}
 
-            {!isEditing && imageMethod === 'gallery' && (
+            {imageMethod === 'gallery' && (
               <div className="grid grid-cols-3 gap-2">
                 {SAMPLE_IMAGES.map((url, index) => (
                   <button
@@ -502,7 +501,7 @@ const AddEditItemPage = () => {
                     </button>
                   </div>
                 )}
-                {!isEditing && imagePreview && !previewError && (
+                {imagePreview && !previewError && (
                   <button
                     type="button"
                     onClick={() => {
