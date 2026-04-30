@@ -4,16 +4,19 @@ import { useAuth } from '../../hooks/useAuth'
 import { useProducts } from '../../hooks/useProducts'
 import { useToast } from '../../hooks/useToast'
 import { formatCurrency } from '../../lib/utils'
+import { storeApi } from '../../api/storeApi'
 
 const StoreSettingsPage = () => {
-  const { user } = useAuth()
+  const { user, updateUserStore } = useAuth()
   const { products } = useProducts()
   const toast = useToast()
 
   const [storeName, setStoreName] = useState(user?.storeName || '')
   const [storeDescription, setStoreDescription] = useState('')
+  const [logoUrl, setLogoUrl] = useState('')
   const [success, setSuccess] = useState('')
   const [error, setError] = useState('')
+  const [saving, setSaving] = useState(false)
 
   if (!user) {
     return (
@@ -29,7 +32,7 @@ const StoreSettingsPage = () => {
   const totalValue = myProducts.reduce((sum, p) => sum + p.price * p.quantity, 0)
   const totalSold = myProducts.reduce((sum, p) => sum + (p.soldCount || 0), 0)
 
-  const handleSave = (e) => {
+  const handleSave = async (e) => {
     e.preventDefault()
     setError('')
     setSuccess('')
@@ -39,9 +42,34 @@ const StoreSettingsPage = () => {
       return
     }
 
-    setSuccess('Store settings updated successfully!')
-    toast.success('Store settings saved!')
-    setTimeout(() => setSuccess(''), 3000)
+    if (user.storeId) {
+      setError('You already have a store. Editing an existing store is not yet supported.')
+      return
+    }
+
+    setSaving(true)
+    try {
+      const result = await storeApi.createStore({
+        requestingUserId: user.id,
+        storeName: storeName.trim(),
+        description: storeDescription.trim() || null,
+        logoUrl: logoUrl.trim() || null,
+      })
+
+      if (!result.success) {
+        setError(result.error)
+        return
+      }
+
+      updateUserStore({ storeId: result.storeId, storeName: result.storeName })
+      setSuccess('Store created successfully!')
+      toast.success('Store created!')
+      setTimeout(() => setSuccess(''), 3000)
+    } catch (err) {
+      setError(err.message || 'Network error')
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (
@@ -99,78 +127,27 @@ const StoreSettingsPage = () => {
 
               <div>
                 <label className="block text-sm font-medium text-slate-200 mb-1">
-                  Store Owner
+                  Logo URL
                 </label>
                 <input
-                  type="text"
-                  value={user.fullName}
-                  disabled
-                  className="w-full px-4 py-3 border border-slate-700 rounded-lg bg-slate-800 text-slate-400"
+                  type="url"
+                  value={logoUrl}
+                  onChange={(e) => setLogoUrl(e.target.value)}
+                  placeholder="https://example.com/logo.png"
+                  className="w-full px-4 py-3 border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-gold-500 focus:border-transparent transition bg-slate-900 text-slate-100 placeholder:text-slate-500"
                 />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-slate-200 mb-1">
-                  Contact Email
-                </label>
-                <input
-                  type="email"
-                  value={user.email}
-                  disabled
-                  className="w-full px-4 py-3 border border-slate-700 rounded-lg bg-slate-800 text-slate-400"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-slate-200 mb-2">
-                  Store Visibility
-                </label>
-                <div className="flex gap-4">
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input type="radio" name="visibility" defaultChecked className="text-gold-400 focus:ring-gold-500" />
-                    <span className="text-sm text-slate-200">Public - Anyone can see your store</span>
-                  </label>
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input type="radio" name="visibility" className="text-gold-400 focus:ring-gold-500" />
-                    <span className="text-sm text-slate-200">Private - Only via direct link</span>
-                  </label>
-                </div>
               </div>
 
               <div className="pt-2">
                 <button
                   type="submit"
-                  className="bg-gold-500 text-white px-8 py-3 rounded-lg font-medium hover:bg-gold-600 transition shadow-md"
+                  disabled={saving || Boolean(user.storeId)}
+                  className="bg-gold-500 text-white px-8 py-3 rounded-lg font-medium hover:bg-gold-600 transition shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Save Settings
+                  {saving ? 'Saving...' : user.storeId ? 'Store Already Created' : 'Create Store'}
                 </button>
               </div>
             </form>
-          </div>
-
-          {/* Store Link */}
-          <div className="bg-slate-800 rounded-2xl shadow-sm border border-slate-700 p-8 mt-6">
-            <h2 className="text-xl font-semibold text-slate-100 mb-4">Share Your Store</h2>
-            <p className="text-slate-400 text-sm mb-4">
-              Share this link with others so they can browse and buy from your store
-            </p>
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={window.location.origin + '/store/' + user.id}
-                readOnly
-                className="flex-1 px-4 py-3 border border-slate-600 rounded-lg bg-slate-900 text-sm text-slate-200"
-              />
-              <button
-                onClick={() => {
-                  navigator.clipboard.writeText(window.location.origin + '/store/' + user.id)
-                  toast.success('Store link copied to clipboard!')
-                }}
-                className="bg-gold-500 text-white px-6 py-3 rounded-lg font-medium hover:bg-gold-600 transition text-sm shadow-md"
-              >
-                Copy Link
-              </button>
-            </div>
           </div>
         </div>
 

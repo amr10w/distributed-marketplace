@@ -1,20 +1,44 @@
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Link } from 'react-router-dom'
-import { useProducts } from '../../hooks/useProducts'
 import { useAuth } from '../../hooks/useAuth'
 import { useToast } from '../../hooks/useToast'
 import { formatCurrency, formatDate } from '../../lib/utils'
+import { itemsApi } from '../../api/itemsApi'
 import ConfirmModal from '../../components/common/ConfirmModal'
 import SkeletonTable from '../../components/common/SkeletonTable'
 
 const MyItemsPage = () => {
   const { user } = useAuth()
-  const { products, loading, deleteProduct } = useProducts()
   const toast = useToast()
+  const [myItems, setMyItems] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState('')
   const [deleteId, setDeleteId] = useState(null)
   const [showConfirm, setShowConfirm] = useState(false)
 
-  if (loading) return <SkeletonTable rows={5} cols={6} />
+  const loadInventory = useCallback(async () => {
+    if (!user) return
+    setLoading(true)
+    setLoadError('')
+    try {
+      const result = await itemsApi.getUserInventory({ ownerId: user.id })
+      if (result.success) {
+        setMyItems(result.items)
+      } else {
+        setLoadError(result.error)
+        setMyItems([])
+      }
+    } catch (err) {
+      setLoadError(err.message || 'Network error')
+      setMyItems([])
+    } finally {
+      setLoading(false)
+    }
+  }, [user])
+
+  useEffect(() => {
+    loadInventory()
+  }, [loadInventory])
 
   if (!user) {
     return (
@@ -26,21 +50,35 @@ const MyItemsPage = () => {
     )
   }
 
-  const myItems = products.filter((p) => p.sellerId === user.id)
+  if (loading) return <SkeletonTable rows={5} cols={6} />
 
   const handleDeleteClick = (id) => {
     setDeleteId(id)
     setShowConfirm(true)
   }
 
-  const confirmDelete = () => {
-    if (deleteId) {
-      const item = products.find((p) => p.id === deleteId)
-      deleteProduct(deleteId)
-      toast.success('Deleted "' + (item ? item.name : 'item') + '" successfully')
+  const confirmDelete = async () => {
+    if (!deleteId) {
+      setShowConfirm(false)
+      return
     }
-    setShowConfirm(false)
-    setDeleteId(null)
+    try {
+      const result = await itemsApi.deleteItem({
+        requestingUserId: user.id,
+        itemId: deleteId,
+      })
+      if (result.success) {
+        toast.success('Item deleted')
+        setMyItems((prev) => prev.filter((p) => p.id !== deleteId))
+      } else {
+        toast.error(result.error)
+      }
+    } catch (err) {
+      toast.error(err.message || 'Network error')
+    } finally {
+      setShowConfirm(false)
+      setDeleteId(null)
+    }
   }
 
   return (
@@ -57,6 +95,12 @@ const MyItemsPage = () => {
           + Add New Item
         </Link>
       </div>
+
+      {loadError && (
+        <div className="bg-red-900/30 border border-red-800 text-red-400 px-4 py-3 rounded-lg mb-4 text-sm">
+          {loadError}
+        </div>
+      )}
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
         <div className="bg-slate-800 rounded-lg border border-slate-700 p-4">

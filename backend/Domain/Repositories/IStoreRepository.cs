@@ -7,6 +7,10 @@ namespace MarketPlace.Domain.Repositories
     {
         Task<Store?> GetByIdAsync(int storeId);
 
+        Task<Store?> GetByOwnerIdAsync(int ownerId);
+
         Task AddAsync(Store store);
+
+        Task<IEnumerable<Store>> GetAllAsync();
     }
 }

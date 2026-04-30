@@ -1,7 +1,5 @@
 ﻿using MarketPlace.Application.DTOs;
-using MarketPlace.Domain.Entities;
 using MarketPlace.Domain.Repositories;
-using System;
 using System.Text.Json;
 using System.Threading.Tasks;
 
@@ -11,13 +9,11 @@ namespace MarketPlace.Application.Commands
     {
         private readonly IUserRepository _userRepository;
         private readonly IWalletRepository _walletRepository;
-        private readonly ITransactionRepository _transactionRepository;
 
-        public DepositCashCommandHandler(IUserRepository userRepository, IWalletRepository walletRepository, ITransactionRepository transactionRepository)
+        public DepositCashCommandHandler(IUserRepository userRepository, IWalletRepository walletRepository)
         {
             _userRepository = userRepository;
             _walletRepository = walletRepository;
-            _transactionRepository = transactionRepository;
         }
 
         public async Task<JsonEnvelope> HandleAsync(JsonEnvelope request)
@@ -97,16 +93,6 @@ namespace MarketPlace.Application.Commands
                         Message = "Wallet not found for user."
                     });
             }
-
-            var transaction = new Transaction
-            {
-                BuyerId = user.UserId,
-                Amount = amount,
-                TransactionType = TransactionType.Deposit,
-                Status = TransactionStatus.Completed
-            };
-
-            await _transactionRepository.AddAsync(transaction);
 
             return BuildResponse(
                 request.CorrelationId,

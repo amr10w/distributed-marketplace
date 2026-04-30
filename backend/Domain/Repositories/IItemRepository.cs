@@ -21,5 +21,10 @@ namespace MarketPlace.Domain.Repositories
         /// Used for Feature vii: Viewing items to be sold.
         /// </summary>
         Task<IEnumerable<Item>> GetItemsByOwnerIdAsync(int ownerId);
+
+        /// <summary>
+        /// Used for browsing: returns all available items with stock > 0.
+        /// </summary>
+        Task<IEnumerable<Item>> GetAllAvailableAsync();
     }
 }

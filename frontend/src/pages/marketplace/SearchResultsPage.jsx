@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { useProducts } from '../../hooks/useProducts'
+import { productsApi } from '../../api/productsApi'
 import ProductCard from '../../components/common/ProductCard'
 import SkeletonCard from '../../components/common/SkeletonCard'
 import Pagination from '../../components/common/Pagination'
@@ -11,8 +11,9 @@ const ITEMS_PER_PAGE = 8
 const SearchResultsPage = () => {
   const [searchParams] = useSearchParams()
   const query = searchParams.get('q') || ''
-  const { searchProducts } = useProducts()
+  const [results, setResults] = useState([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
   const [currentPage, setCurrentPage] = useState(1)
   const [sortBy, setSortBy] = useState('relevance')
   const [advancedFilters, setAdvancedFilters] = useState({
@@ -24,42 +25,58 @@ const SearchResultsPage = () => {
   })
 
   useEffect(() => {
+    if (!query) {
+      setResults([])
+      setLoading(false)
+      return
+    }
+    let cancelled = false
     setLoading(true)
+    setError(null)
     setCurrentPage(1)
-    const timer = setTimeout(() => setLoading(false), 600)
-    return () => clearTimeout(timer)
+    productsApi.searchItems(query).then((result) => {
+      if (cancelled) return
+      if (result.success) {
+        setResults(result.items)
+      } else {
+        setError(result.error)
+        setResults([])
+      }
+      setLoading(false)
+    })
+    return () => { cancelled = true }
   }, [query])
 
-  let results = searchProducts(query)
+  let filtered = [...results]
 
   if (advancedFilters.category !== 'All') {
-    results = results.filter((p) => p.category === advancedFilters.category)
+    filtered = filtered.filter((p) => p.category === advancedFilters.category)
   }
   if (advancedFilters.minPrice !== '') {
-    results = results.filter((p) => p.price >= parseFloat(advancedFilters.minPrice))
+    filtered = filtered.filter((p) => p.price >= parseFloat(advancedFilters.minPrice))
   }
   if (advancedFilters.maxPrice !== '') {
-    results = results.filter((p) => p.price <= parseFloat(advancedFilters.maxPrice))
+    filtered = filtered.filter((p) => p.price <= parseFloat(advancedFilters.maxPrice))
   }
   if (advancedFilters.inStockOnly) {
-    results = results.filter((p) => p.quantity > 0)
+    filtered = filtered.filter((p) => p.quantity > 0)
   }
   if (advancedFilters.seller !== '') {
     const sellerLower = advancedFilters.seller.toLowerCase()
-    results = results.filter(
+    filtered = filtered.filter(
       (p) =>
         p.sellerName.toLowerCase().includes(sellerLower) ||
         p.storeName.toLowerCase().includes(sellerLower)
     )
   }
 
-  if (sortBy === 'price-low') results.sort((a, b) => a.price - b.price)
-  else if (sortBy === 'price-high') results.sort((a, b) => b.price - a.price)
-  else if (sortBy === 'name') results.sort((a, b) => a.name.localeCompare(b.name))
-  else if (sortBy === 'newest') results.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+  if (sortBy === 'price-low') filtered.sort((a, b) => a.price - b.price)
+  else if (sortBy === 'price-high') filtered.sort((a, b) => b.price - a.price)
+  else if (sortBy === 'name') filtered.sort((a, b) => a.name.localeCompare(b.name))
+  else if (sortBy === 'newest') filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
 
-  const totalPages = Math.ceil(results.length / ITEMS_PER_PAGE)
-  const paginatedResults = results.slice(
+  const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE)
+  const paginatedResults = filtered.slice(
     (currentPage - 1) * ITEMS_PER_PAGE,
     currentPage * ITEMS_PER_PAGE
   )
@@ -75,7 +92,11 @@ const SearchResultsPage = () => {
         <div>
           <h1 className="text-3xl font-bold text-slate-100">Search Results</h1>
           <p className="text-slate-400 mt-1">
-            {results.length} result{results.length !== 1 ? 's' : ''} for "<span className="font-medium text-slate-200">{query}</span>"
+            {loading
+              ? 'Searching...'
+              : `${filtered.length} result${filtered.length !== 1 ? 's' : ''} for "`}
+            {!loading && <span className="font-medium text-slate-200">{query}</span>}
+            {!loading && '"'}
           </p>
         </div>
         <select
@@ -96,7 +117,7 @@ const SearchResultsPage = () => {
           setAdvancedFilters(filters)
           setCurrentPage(1)
         }}
-        totalResults={results.length}
+        totalResults={filtered.length}
       />
 
       {loading ? (
@@ -104,6 +125,12 @@ const SearchResultsPage = () => {
           {Array.from({ length: 4 }).map((_, i) => (
             <SkeletonCard key={i} />
           ))}
+        </div>
+      ) : error ? (
+        <div className="text-center py-12 bg-slate-800 rounded-lg border border-red-800">
+          <div className="text-6xl mb-4">⚠️</div>
+          <h3 className="text-xl font-semibold text-slate-200 mb-2">Search failed</h3>
+          <p className="text-slate-400">{error}</p>
         </div>
       ) : paginatedResults.length > 0 ? (
         <>

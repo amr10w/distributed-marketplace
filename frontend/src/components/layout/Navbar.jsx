@@ -34,7 +34,7 @@ const Navbar = () => {
       <div className="flex items-center justify-between gap-4">
         {/* Logo */}
         <Link to="/marketplace" className="text-xl lg:text-2xl font-bold text-gold-400 whitespace-nowrap">
-          🛒 MarketPlace
+          MarketPlace
         </Link>
 
         {/* Desktop Search */}
@@ -121,7 +121,7 @@ const Navbar = () => {
                   className="flex items-center gap-2 bg-slate-800 hover:bg-slate-600 px-3 py-2 rounded-lg transition"
                 >
                   <div className="w-8 h-8 bg-gold-600 rounded-full flex items-center justify-center text-white text-sm font-bold">
-                    {user.fullName.charAt(0)}
+                    {(user.fullName || user.username || '?').charAt(0)}
                   </div>
                   <span className="hidden lg:block text-sm font-medium text-slate-100">
                     {user.fullName}

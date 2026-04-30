@@ -1,10 +1,9 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
-import { useProducts } from '../../hooks/useProducts'
 import { useAuth } from '../../hooks/useAuth'
-import { useTransactions } from '../../hooks/useTransactions'
 import { useCart } from '../../hooks/useCart'
 import { useToast } from '../../hooks/useToast'
+import { productsApi } from '../../api/productsApi'
 import { formatCurrency } from '../../lib/utils'
 import ConfirmModal from '../../components/common/ConfirmModal'
 import SkeletonDetail from '../../components/common/SkeletonDetail'
@@ -12,27 +11,47 @@ import SkeletonDetail from '../../components/common/SkeletonDetail'
 const ProductDetailPage = () => {
   const { id } = useParams()
   const navigate = useNavigate()
-  const { getProductById, reduceStock, loading } = useProducts()
-  const { user, updateBalance, updateSellerBalance } = useAuth()
-  const { addTransaction } = useTransactions()
+  const { user, updateBalance } = useAuth()
   const { addToCart, isInCart, openCart } = useCart()
   const toast = useToast()
+
+  const [product, setProduct] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
   const [quantity, setQuantity] = useState(1)
   const [showConfirm, setShowConfirm] = useState(false)
   const [purchaseSuccess, setPurchaseSuccess] = useState(false)
-  const [error, setError] = useState('')
+  const [purchaseError, setPurchaseError] = useState('')
   const [imgError, setImgError] = useState(false)
+
+  useEffect(() => {
+    let cancelled = false
+    setLoading(true)
+    setError(null)
+    productsApi.getItemById(id).then((result) => {
+      if (cancelled) return
+      if (result.success) {
+        setProduct(result.item)
+      } else {
+        setError(result.error)
+      }
+      setLoading(false)
+    })
+    return () => { cancelled = true }
+  }, [id])
 
   if (loading) return <SkeletonDetail />
 
-  const product = getProductById(id)
-
-  if (!product) {
+  if (error || !product) {
     return (
       <div className="text-center py-12">
         <div className="text-6xl mb-4">😕</div>
-        <h3 className="text-xl font-semibold text-slate-200 mb-2">Product not found</h3>
-        <Link to="/marketplace" className="text-gold-400 hover:underline">Back to Marketplace</Link>
+        <h3 className="text-xl font-semibold text-slate-200 mb-2">
+          {error || 'Product not found'}
+        </h3>
+        <Link to="/marketplace" className="text-gold-400 hover:underline">
+          Back to Marketplace
+        </Link>
       </div>
     )
   }
@@ -55,12 +74,8 @@ const ProductDetailPage = () => {
     toast.success(quantity + 'x ' + product.name + ' added to cart!')
   }
 
-  const handleViewCart = () => {
-    openCart()
-  }
-
   const handlePurchase = () => {
-    setError('')
+    setPurchaseError('')
     if (!user) {
       toast.warning('Please login to purchase items')
       navigate('/login')
@@ -75,11 +90,16 @@ const ProductDetailPage = () => {
       return
     }
     if (quantity > product.quantity) {
-      setError('Not enough stock. Only ' + product.quantity + ' available.')
+      setPurchaseError('Not enough stock. Only ' + product.quantity + ' available.')
       return
     }
     if (user.balance < totalPrice) {
-      setError('Insufficient balance. You need ' + formatCurrency(totalPrice) + ' but only have ' + formatCurrency(user.balance))
+      setPurchaseError(
+        'Insufficient balance. You need ' +
+          formatCurrency(totalPrice) +
+          ' but only have ' +
+          formatCurrency(user.balance)
+      )
       return
     }
     setShowConfirm(true)
@@ -87,19 +107,7 @@ const ProductDetailPage = () => {
 
   const confirmPurchase = () => {
     updateBalance(-totalPrice)
-    updateSellerBalance(product.sellerId, totalPrice)
-    reduceStock(product.id, quantity)
-    addTransaction({
-      type: 'PURCHASE',
-      buyerId: user.id,
-      buyerName: user.fullName,
-      sellerId: product.sellerId,
-      sellerName: product.sellerName,
-      productId: product.id,
-      productName: product.name,
-      quantity: quantity,
-      amount: totalPrice,
-    })
+    setProduct((prev) => ({ ...prev, quantity: prev.quantity - quantity }))
     setPurchaseSuccess(true)
     setShowConfirm(false)
     toast.success('Successfully purchased ' + quantity + 'x ' + product.name + '!')
@@ -118,7 +126,7 @@ const ProductDetailPage = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-0">
           {/* Product Image */}
           <div className="bg-slate-800 relative">
-            {!imgError ? (
+            {product.image && !imgError ? (
               <img
                 src={product.image}
                 alt={product.name}
@@ -183,20 +191,23 @@ const ProductDetailPage = () => {
               <p className="text-sm text-slate-400">Sold by</p>
               <div className="flex items-center gap-3 mt-1">
                 <div className="w-10 h-10 bg-gold-600 rounded-full flex items-center justify-center text-white font-bold">
-                  {product.sellerName ? product.sellerName.charAt(0) : 'S'}
+                  {product.storeName ? product.storeName.charAt(0).toUpperCase() : 'S'}
                 </div>
                 <div>
                   <p className="font-medium text-slate-100">{product.storeName}</p>
-                  <Link to={'/store/' + product.sellerId} className="text-sm text-gold-400 hover:underline">
+                  <Link
+                    to={'/store/' + product.storeId}
+                    className="text-sm text-gold-400 hover:underline"
+                  >
                     Visit Store →
                   </Link>
                 </div>
               </div>
             </div>
 
-            {error && (
+            {purchaseError && (
               <div className="bg-red-900/30 border border-red-800 text-red-400 px-4 py-3 rounded-lg mb-4 text-sm">
-                {error}
+                {purchaseError}
               </div>
             )}
 
@@ -209,12 +220,20 @@ const ProductDetailPage = () => {
                 <p className="text-sm text-emerald-400 mb-1">
                   You bought {quantity}x {product.name} for {formatCurrency(totalPrice)}
                 </p>
-                <p className="text-sm text-emerald-400">New balance: {formatCurrency(user.balance)}</p>
+                <p className="text-sm text-emerald-400">
+                  New balance: {formatCurrency(user.balance)}
+                </p>
                 <div className="flex gap-2 mt-3">
-                  <Link to="/account" className="text-sm bg-emerald-700 text-white px-4 py-2 rounded-lg hover:bg-emerald-800">
+                  <Link
+                    to="/account"
+                    className="text-sm bg-emerald-700 text-white px-4 py-2 rounded-lg hover:bg-emerald-800"
+                  >
                     View Account
                   </Link>
-                  <Link to="/marketplace" className="text-sm border border-emerald-700 text-emerald-400 px-4 py-2 rounded-lg hover:bg-emerald-900/30">
+                  <Link
+                    to="/marketplace"
+                    className="text-sm border border-emerald-700 text-emerald-400 px-4 py-2 rounded-lg hover:bg-emerald-900/30"
+                  >
                     Continue Shopping
                   </Link>
                 </div>
@@ -224,12 +243,20 @@ const ProductDetailPage = () => {
             {isOwnProduct && !purchaseSuccess && (
               <div className="bg-amber-900/30 border border-gold-600 rounded-lg p-4 mb-4">
                 <p className="text-gold-200 font-medium mb-2">This is your product</p>
-                <p className="text-sm text-gold-400 mb-3">You can edit or manage this item from your seller dashboard</p>
+                <p className="text-sm text-gold-400 mb-3">
+                  You can edit or manage this item from your seller dashboard
+                </p>
                 <div className="flex gap-2">
-                  <Link to={'/seller/items/' + product.id + '/edit'} className="text-sm bg-gold-600 text-white px-4 py-2 rounded-lg hover:bg-gold-700">
+                  <Link
+                    to={'/seller/items/' + product.id + '/edit'}
+                    className="text-sm bg-gold-600 text-white px-4 py-2 rounded-lg hover:bg-gold-700"
+                  >
                     Edit Item
                   </Link>
-                  <Link to="/seller/inventory" className="text-sm border border-gold-500 text-gold-300 px-4 py-2 rounded-lg hover:bg-amber-900/30">
+                  <Link
+                    to="/seller/inventory"
+                    className="text-sm border border-gold-500 text-gold-300 px-4 py-2 rounded-lg hover:bg-amber-900/30"
+                  >
                     Manage Inventory
                   </Link>
                 </div>
@@ -241,9 +268,21 @@ const ProductDetailPage = () => {
                 <div className="flex items-center gap-4 mb-4">
                   <label className="text-sm font-medium text-slate-200">Quantity:</label>
                   <div className="flex items-center border border-slate-600 rounded-lg">
-                    <button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="px-3 py-2 hover:bg-slate-900 text-lg font-medium text-slate-200">-</button>
-                    <span className="px-4 py-2 font-medium border-x border-slate-600 min-w-[50px] text-center text-slate-100">{quantity}</span>
-                    <button onClick={() => setQuantity(Math.min(product.quantity, quantity + 1))} className="px-3 py-2 hover:bg-slate-900 text-lg font-medium text-slate-200">+</button>
+                    <button
+                      onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                      className="px-3 py-2 hover:bg-slate-900 text-lg font-medium text-slate-200"
+                    >
+                      -
+                    </button>
+                    <span className="px-4 py-2 font-medium border-x border-slate-600 min-w-[50px] text-center text-slate-100">
+                      {quantity}
+                    </span>
+                    <button
+                      onClick={() => setQuantity(Math.min(product.quantity, quantity + 1))}
+                      className="px-3 py-2 hover:bg-slate-900 text-lg font-medium text-slate-200"
+                    >
+                      +
+                    </button>
                   </div>
                   <span className="text-sm text-slate-400">Max: {product.quantity}</span>
                 </div>
@@ -251,13 +290,16 @@ const ProductDetailPage = () => {
                 {quantity > 1 && (
                   <div className="bg-slate-900 rounded-lg p-3 mb-4 border border-slate-700">
                     <div className="flex justify-between text-sm">
-                      <span className="text-slate-400">{quantity} x {formatCurrency(product.price)}</span>
-                      <span className="font-bold text-slate-100">Total: {formatCurrency(totalPrice)}</span>
+                      <span className="text-slate-400">
+                        {quantity} x {formatCurrency(product.price)}
+                      </span>
+                      <span className="font-bold text-slate-100">
+                        Total: {formatCurrency(totalPrice)}
+                      </span>
                     </div>
                   </div>
                 )}
 
-                {/* Two action buttons */}
                 <div className="flex gap-3 mb-3">
                   <button
                     onClick={handleAddToCart}
@@ -281,7 +323,7 @@ const ProductDetailPage = () => {
 
                 {inCart && (
                   <button
-                    onClick={handleViewCart}
+                    onClick={openCart}
                     className="w-full text-gold-400 hover:underline text-sm font-medium mb-3"
                   >
                     View Cart →
@@ -289,10 +331,14 @@ const ProductDetailPage = () => {
                 )}
 
                 {user && (
-                  <p className={
-                    'text-center text-sm mt-3 ' +
-                    (user.balance >= totalPrice ? 'text-slate-400' : 'text-red-400 font-medium')
-                  }>
+                  <p
+                    className={
+                      'text-center text-sm mt-3 ' +
+                      (user.balance >= totalPrice
+                        ? 'text-slate-400'
+                        : 'text-red-400 font-medium')
+                    }
+                  >
                     {user.balance >= totalPrice
                       ? 'Your balance: ' + formatCurrency(user.balance)
                       : 'Insufficient balance: ' + formatCurrency(user.balance)}
@@ -300,14 +346,20 @@ const ProductDetailPage = () => {
                 )}
 
                 {user && user.balance < totalPrice && (
-                  <Link to="/account/deposit" className="block text-center text-gold-400 hover:underline text-sm mt-2">
+                  <Link
+                    to="/account/deposit"
+                    className="block text-center text-gold-400 hover:underline text-sm mt-2"
+                  >
                     Deposit funds →
                   </Link>
                 )}
 
                 {!user && (
                   <p className="text-center text-sm text-slate-400 mt-3">
-                    <Link to="/login" className="text-gold-400 hover:underline">Login</Link> to purchase
+                    <Link to="/login" className="text-gold-400 hover:underline">
+                      Login
+                    </Link>{' '}
+                    to purchase
                   </p>
                 )}
               </>
@@ -319,7 +371,9 @@ const ProductDetailPage = () => {
       <ConfirmModal
         isOpen={showConfirm}
         title="Confirm Purchase"
-        message={'Buy ' + quantity + 'x ' + product.name + ' for ' + formatCurrency(totalPrice) + '?'}
+        message={
+          'Buy ' + quantity + 'x ' + product.name + ' for ' + formatCurrency(totalPrice) + '?'
+        }
         onConfirm={confirmPurchase}
         onCancel={() => setShowConfirm(false)}
       />

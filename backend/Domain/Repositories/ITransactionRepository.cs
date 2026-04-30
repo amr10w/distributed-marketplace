@@ -17,5 +17,7 @@ namespace MarketPlace.Domain.Repositories
         /// Fetches all transactions to generate the required system report.
         /// </summary>
         Task<IEnumerable<Transaction>> GetAllTransactionsForReportAsync();
+
+        Task<IEnumerable<Transaction>> GetByUserIdAsync(int userId);
     }
 }

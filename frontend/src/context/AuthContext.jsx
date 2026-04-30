@@ -1,5 +1,7 @@
 import { createContext, useState, useEffect } from 'react'
 import usersData from '../mocks/users.json'
+import { authApi } from '../api/authApi'
+import { walletApi } from '../api/walletApi'
 
 const AuthContext = createContext(null)
 
@@ -24,12 +26,22 @@ const AuthProvider = ({ children }) => {
   useEffect(() => {
     const savedUser = localStorage.getItem(USER_KEY)
     if (savedUser) {
-      const parsed = JSON.parse(savedUser)
-      const fresh = allUsers.find((u) => u.id === parsed.id)
-      if (fresh) {
-        const userData = { ...fresh }
-        delete userData.password
-        setUser(userData)
+      try {
+        const parsed = JSON.parse(savedUser)
+        const hydrated = {
+          id: parsed.id,
+          username: parsed.username || '',
+          fullName: parsed.fullName || parsed.username || '',
+          email: parsed.email || '',
+          balance: typeof parsed.balance === 'number' ? parsed.balance : 0,
+          storeId: parsed.storeId,
+          storeName: parsed.storeName || '',
+          createdAt: parsed.createdAt || new Date().toISOString(),
+        }
+        setUser(hydrated)
+      } catch (error) {
+        console.error('Error parsing saved user:', error)
+        localStorage.removeItem(USER_KEY)
       }
     }
     setLoading(false)
@@ -43,42 +55,57 @@ const AuthProvider = ({ children }) => {
     }
   }, [allUsers])
 
-  const login = (email, password) => {
-    const foundUser = allUsers.find(
-      (u) => u.email === email && u.password === password
-    )
-    if (foundUser) {
-      const userData = { ...foundUser }
-      delete userData.password
-      setUser(userData)
-      localStorage.setItem(USER_KEY, JSON.stringify(userData))
-      return { success: true, user: userData }
+  const login = async (username, password) => {
+    let result
+    try {
+      result = await authApi.login(username, password)
+    } catch (error) {
+      return { success: false, error: error.message || 'Network error' }
     }
-    return { success: false, error: 'Invalid email or password' }
+    if (!result.success) {
+      return { success: false, error: result.error }
+    }
+
+    const walletResult = await walletApi.getBalance(result.userId)
+    const userData = {
+      id: result.userId,
+      username: result.username,
+      fullName: result.username,
+      email: '',
+      balance: walletResult.success ? walletResult.balance : (result.balance ?? 0),
+      storeId: result.storeId || null,
+      storeName: result.storeName || '',
+      createdAt: new Date().toISOString(),
+    }
+    setUser(userData)
+    localStorage.setItem(USER_KEY, JSON.stringify(userData))
+    return { success: true, user: userData }
   }
 
-  const register = (userData) => {
-    const exists = allUsers.find(
-      (u) => u.email === userData.email || u.username === userData.username
-    )
-    if (exists) {
-      return { success: false, error: 'User already exists' }
+  const register = async (userData) => {
+    let result
+    try {
+      result = await authApi.register(userData)
+    } catch (error) {
+      return { success: false, error: error.message || 'Network error' }
     }
-    const maxId = allUsers.reduce((max, u) => Math.max(max, u.id), 0)
+    if (!result.success) {
+      return { success: false, error: result.error }
+    }
+
     const newUser = {
-      id: maxId + 1,
-      ...userData,
+      id: result.userId,
+      username: userData.username,
+      email: userData.email,
+      fullName: userData.fullName,
       balance: 0,
       storeName: '',
       createdAt: new Date().toISOString(),
     }
     setAllUsers((prev) => [...prev, newUser])
-
-    const safeUser = { ...newUser }
-    delete safeUser.password
-    setUser(safeUser)
-    localStorage.setItem(USER_KEY, JSON.stringify(safeUser))
-    return { success: true, user: safeUser }
+    setUser(newUser)
+    localStorage.setItem(USER_KEY, JSON.stringify(newUser))
+    return { success: true, user: newUser }
   }
 
   const logout = () => {
@@ -100,6 +127,14 @@ const AuthProvider = ({ children }) => {
     }
   }
 
+  const setBalance = (newBalance) => {
+    if (user) {
+      const updatedUser = { ...user, balance: newBalance }
+      setUser(updatedUser)
+      localStorage.setItem(USER_KEY, JSON.stringify(updatedUser))
+    }
+  }
+
   const updateSellerBalance = (sellerId, amount) => {
     setAllUsers((prev) =>
       prev.map((u) =>
@@ -108,14 +143,14 @@ const AuthProvider = ({ children }) => {
     )
   }
 
-  const updateUserStore = (storeName) => {
+  const updateUserStore = ({ storeId, storeName }) => {
     if (user) {
-      const updatedUser = { ...user, storeName }
+      const updatedUser = { ...user, storeId, storeName }
       setUser(updatedUser)
       localStorage.setItem(USER_KEY, JSON.stringify(updatedUser))
       setAllUsers((prev) =>
         prev.map((u) =>
-          u.id === user.id ? { ...u, storeName } : u
+          u.id === user.id ? { ...u, storeId, storeName } : u
         )
       )
     }
@@ -148,6 +183,7 @@ const AuthProvider = ({ children }) => {
         register,
         logout,
         updateBalance,
+        setBalance,
         updateSellerBalance,
         updateUserStore,
         getUserById,
