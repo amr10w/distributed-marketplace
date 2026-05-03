@@ -12,7 +12,7 @@ namespace MarketPlace.Infrastructure.Data
         public DbSet<Category> Categories => Set<Category>();
         public DbSet<Cart> Carts => Set<Cart>();
         public DbSet<CartItem> CartItems => Set<CartItem>();
-
+        public DbSet<Report> Reports => Set<Report>();
         public DbSet<Item> Items => Set<Item>();
         public DbSet<Transaction> Transactions => Set<Transaction>();
 
@@ -30,6 +30,7 @@ namespace MarketPlace.Infrastructure.Data
             ConfigureTransaction(modelBuilder);
             ConfigureCart(modelBuilder);
             ConfigureCartItem(modelBuilder);
+            ConfigureReport(modelBuilder);
         }
 
 
@@ -208,6 +209,40 @@ namespace MarketPlace.Infrastructure.Data
 
                 e.HasIndex(ci => ci.CartId);
                 e.HasIndex(ci => ci.ItemId);
+            });
+        }
+        private static void ConfigureReport(ModelBuilder b)
+        {
+            b.Entity<Report>(e =>
+            {
+                e.ToTable("Report");
+                e.HasKey(r => r.ReportId);
+                e.Property(r => r.ReportId).HasColumnName("report_id");
+
+                e.Property(r => r.GeneratedByUserId)
+                 .HasColumnName("generated_by_user_id")
+                 .IsRequired();
+
+                e.Property(r => r.ReportType)
+                 .HasColumnName("report_type")
+                 .HasConversion<string>()  // ← custom converter, not HasConversion<string>() (Didn't make the solution of converter)
+                 .HasColumnType("VARCHAR(30)")
+                 .IsRequired();
+
+                e.Property(r => r.RelatedEntityId).HasColumnName("related_entity_id");
+                e.Property(r => r.RelatedEntityType)
+                 .HasColumnName("related_entity_type")
+                 .HasMaxLength(50);
+
+                e.Property(r => r.Metadata)
+                 .HasColumnName("metadata");                // TEXT column in DB
+
+                e.Property(r => r.CreatedAt).HasColumnName("created_at");
+
+                // Query patterns
+                e.HasIndex(r => r.GeneratedByUserId);
+                e.HasIndex(r => r.ReportType);
+                e.HasIndex(r => r.CreatedAt);
             });
         }
     }
