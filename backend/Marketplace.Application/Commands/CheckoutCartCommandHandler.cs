@@ -15,8 +15,9 @@ namespace MarketPlace.Application.Commands
         private readonly ICartRepository _cartRepository;
         private readonly ITransactionRepository _transactionRepository;
         private readonly IStoreRepository _storeRepository;
+        private readonly IReportRepository _reportRepository;
 
-        public CheckoutCartCommandHandler(IUserRepository userRepository, IWalletRepository walletRepository, IItemRepository itemRepository, ICartRepository cartRepository, ITransactionRepository transactionRepository, IStoreRepository storeRepository)
+        public CheckoutCartCommandHandler(IUserRepository userRepository, IWalletRepository walletRepository, IItemRepository itemRepository, ICartRepository cartRepository, ITransactionRepository transactionRepository, IStoreRepository storeRepository, IReportRepository reportRepository)
         {
             _userRepository = userRepository;
             _walletRepository = walletRepository;
@@ -24,6 +25,7 @@ namespace MarketPlace.Application.Commands
             _cartRepository = cartRepository;
             _transactionRepository = transactionRepository;
             _storeRepository = storeRepository;
+            _reportRepository = reportRepository;
         }
 
         public async Task<JsonEnvelope> HandleAsync(JsonEnvelope request)
@@ -217,6 +219,21 @@ namespace MarketPlace.Application.Commands
             cart.UpdatedAt = DateTime.UtcNow;
 
             await _cartRepository.UpdateAsync(cart);
+
+            await _reportRepository.AddAsync(new Report
+            {
+                ReportType = ReportType.transaction_summary,
+                GeneratedByUserId = userId,
+                RelatedEntityId = cart.CartId,
+                RelatedEntityType = "Cart",
+                // Serialize a snapshot of what just happened as JSON
+                Metadata = JsonSerializer.Serialize(new
+                {
+                    TotalAmount = totalAmount,
+                    ItemCount = validatedItems.Count,
+                    CheckedOutAt = DateTime.UtcNow
+                })
+            });
 
             return BuildResponse(
                 request.CorrelationId,

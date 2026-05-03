@@ -1,4 +1,5 @@
 ﻿using MarketPlace.Application.DTOs;
+using MarketPlace.Domain.Entities;
 using MarketPlace.Domain.Repositories;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -9,11 +10,13 @@ namespace MarketPlace.Application.Commands
     {
         private readonly IUserRepository _userRepository;
         private readonly IWalletRepository _walletRepository;
+        private readonly IReportRepository _reportRepository;
 
-        public DepositCashCommandHandler(IUserRepository userRepository, IWalletRepository walletRepository)
+        public DepositCashCommandHandler(IUserRepository userRepository, IWalletRepository walletRepository, IReportRepository reportRepository)
         {
             _userRepository = userRepository;
             _walletRepository = walletRepository;
+            _reportRepository = reportRepository;
         }
 
         public async Task<JsonEnvelope> HandleAsync(JsonEnvelope request)
@@ -81,6 +84,22 @@ namespace MarketPlace.Application.Commands
             }
 
             var wallet = await _walletRepository.DepositAsync(user.UserId, amount);
+
+            //int transactionId;
+            //transactionId = root.GetProperty("TransactionId").GetInt32(); // Need to get transaction ID 
+            await _reportRepository.AddAsync(new Report
+            {
+                ReportType = ReportType.user_activity,
+                GeneratedByUserId = user.UserId,
+                RelatedEntityId = null,
+                RelatedEntityType = "Transaction",
+                Metadata = JsonSerializer.Serialize(new
+                {
+                    Action = "Deposit",
+                    Amount = amount,
+                    NewBalance = wallet.Balance
+                })
+            });
 
             if (wallet == null)
             {
