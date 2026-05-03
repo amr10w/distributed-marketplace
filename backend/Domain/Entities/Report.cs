@@ -30,13 +30,14 @@ namespace MarketPlace.Domain.Entities
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }
     // needed to be consistentnt with the database schema, which uses snake_case for the ReportType values. (Edit the schema)
+    // edited to not convert (but not conventional)
     public enum ReportType
     {
-        TransactionSummary,   // maps to "transaction_summary"
-        UserActivity,         // maps to "user_activity"
-        InventoryStatus,      // maps to "inventory_status"
-        RevenueByCategory,    // maps to "revenue_by_category"
-        TopSellers,           // maps to "top_sellers"
-        Custom                // maps to "custom"
+        transaction_summary,
+        user_activity,
+        inventory_status,
+        revenue_by_category,
+        top_sellers,
+        custom
     }
 }
