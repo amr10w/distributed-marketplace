@@ -34,10 +34,8 @@ const menuSections = [
   {
     title: 'Reports',
     items: [
-      { label: 'Dashboard', path: '/reports', icon: '📊' },
-      { label: 'Transactions', path: '/reports/transactions', icon: '📄' },
-      { label: 'Sales', path: '/reports/sales', icon: '💰' },
-      { label: 'Purchases', path: '/reports/purchases', icon: '🛒' },
+      { label: 'Checkout Report', path: '/reports/checkout', icon: '🛍️' },
+      { label: 'Deposit Cash Report', path: '/reports/deposit-cash', icon: '💵' },
     ],
   },
   {

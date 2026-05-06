@@ -15,6 +15,7 @@ namespace MarketPlace.Infrastructure.Data
 
         public DbSet<Item> Items => Set<Item>();
         public DbSet<Transaction> Transactions => Set<Transaction>();
+        public DbSet<ReportLog> ReportLogs => Set<ReportLog>();
 
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
@@ -30,6 +31,7 @@ namespace MarketPlace.Infrastructure.Data
             ConfigureTransaction(modelBuilder);
             ConfigureCart(modelBuilder);
             ConfigureCartItem(modelBuilder);
+            ConfigureReportLog(modelBuilder);
         }
 
 
@@ -191,6 +193,31 @@ namespace MarketPlace.Infrastructure.Data
                  .HasForeignKey(ci => ci.CartId);
 
                 e.HasIndex(c => c.UserId).IsUnique();
+            });
+        }
+
+        private static void ConfigureReportLog(ModelBuilder b)
+        {
+            b.Entity<ReportLog>(e =>
+            {
+                e.ToTable("ReportLog");
+                e.HasKey(r => r.ReportId);
+                e.Property(r => r.ReportId).HasColumnName("report_id");
+                e.Property(r => r.GeneratedBy).HasColumnName("generated_by").IsRequired();
+                e.Property(r => r.ReportType)
+                 .HasColumnName("report_type")
+                 .HasConversion(
+                     v => v == ReportType.Checkout ? "checkout" : "deposit_cash",
+                     s => s == "checkout" ? ReportType.Checkout : ReportType.DepositCash)
+                 .HasMaxLength(40)
+                 .IsRequired();
+                e.Property(r => r.Parameters).HasColumnName("parameters").HasColumnType("longtext");
+                e.Property(r => r.ResultSnapshot).HasColumnName("result_snapshot").HasColumnType("longtext");
+                e.Property(r => r.GeneratedAt).HasColumnName("generated_at");
+
+                e.HasIndex(r => r.GeneratedBy);
+                e.HasIndex(r => r.ReportType);
+                e.HasIndex(r => r.GeneratedAt);
             });
         }
 
