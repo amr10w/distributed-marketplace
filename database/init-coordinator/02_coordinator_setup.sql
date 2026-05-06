@@ -136,7 +136,9 @@ CREATE TABLE `ReportLog` (
                             'inventory_status',
                             'revenue_by_category',
                             'top_sellers',
-                            'custom'
+                            'custom',
+                            'checkout',
+                            'deposit_cash'
                         )               NOT NULL,
     `parameters`        JSON            NULL,
     `result_snapshot`   JSON            NULL,
