@@ -29,6 +29,9 @@ import ReportsPage from './pages/reports/ReportsPage'
 import TransactionReport from './pages/reports/TransactionReport'
 import SalesReport from './pages/reports/SalesReport'
 import PurchaseReport from './pages/reports/PurchaseReport'
+import ActivityLogPage from './pages/reports/ActivityLogPage'
+import CheckoutReport from './pages/reports/CheckoutReport'
+import DepositCashReport from './pages/reports/DepositCashReport'
 
 import SettingsPage from './pages/settings/SettingsPage'
 import NotFoundPage from './pages/error/NotFoundPage'
@@ -92,6 +95,15 @@ function App() {
                 } />
                 <Route path="/reports/purchases" element={
                   <ProtectedRoute><PurchaseReport /></ProtectedRoute>
+                } />
+                <Route path="/reports/activity" element={
+                  <ProtectedRoute><ActivityLogPage /></ProtectedRoute>
+                } />
+                <Route path="/reports/checkout" element={
+                  <ProtectedRoute><CheckoutReport /></ProtectedRoute>
+                } />
+                <Route path="/reports/deposit-cash" element={
+                  <ProtectedRoute><DepositCashReport /></ProtectedRoute>
                 } />
 
                 <Route path="/settings" element={

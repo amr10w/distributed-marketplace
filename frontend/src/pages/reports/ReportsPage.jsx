@@ -58,6 +58,39 @@ const ReportsPage = () => {
       ],
       gradient: 'from-lapis-500 to-lapis-600',
     },
+    {
+      title: 'Checkout Report',
+      description: 'Audit log of every cart checkout you complete',
+      icon: '🛍️',
+      link: '/reports/checkout',
+      stats: [
+        { label: 'Source', value: 'ReportLog' },
+        { label: 'Type', value: 'checkout' },
+      ],
+      gradient: 'from-rose-500 to-red-600',
+    },
+    {
+      title: 'Deposit Cash Report',
+      description: 'Audit log of every cash deposit to your wallet',
+      icon: '💵',
+      link: '/reports/deposit-cash',
+      stats: [
+        { label: 'Source', value: 'ReportLog' },
+        { label: 'Type', value: 'deposit_cash' },
+      ],
+      gradient: 'from-emerald-500 to-teal-600',
+    },
+    {
+      title: 'Activity Log',
+      description: 'Combined view of all checkouts and deposits',
+      icon: '📋',
+      link: '/reports/activity',
+      stats: [
+        { label: 'Source', value: 'ReportLog' },
+        { label: 'Events', value: 'All' },
+      ],
+      gradient: 'from-purple-500 to-fuchsia-600',
+    },
   ]
 
   return (
