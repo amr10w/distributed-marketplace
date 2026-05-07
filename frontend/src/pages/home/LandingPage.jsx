@@ -103,7 +103,7 @@ const LandingPage = () => {
             <div className="flex flex-wrap gap-4">
               <Link
                 to={user ? '/marketplace' : '/register'}
-                className="bg-amber-500 text-amber-900 px-8 py-4 rounded-xl font-semibold text-lg hover:bg-amber-400 transition shadow-lg"
+                className="bg-primary-600 text-white px-8 py-4 rounded-xl font-semibold text-lg hover:bg-primary-500 transition shadow-lg shadow-primary-900/40"
               >
                 {user ? 'Browse Marketplace' : 'Create Free Account'}
               </Link>
@@ -223,7 +223,7 @@ const LandingPage = () => {
           </p>
           <Link
             to={user ? '/marketplace' : '/register'}
-            className="inline-block bg-amber-500 text-amber-900 px-8 py-4 rounded-xl font-semibold text-lg hover:bg-amber-400 transition shadow-lg"
+            className="inline-block bg-primary-600 text-white px-8 py-4 rounded-xl font-semibold text-lg hover:bg-primary-500 transition shadow-lg shadow-primary-900/40"
           >
             {user ? 'Go to Marketplace' : 'Create Your Account'}
           </Link>
