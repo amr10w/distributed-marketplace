@@ -64,4 +64,3 @@ export const authApi = {
     return true
   },
 }
-}
