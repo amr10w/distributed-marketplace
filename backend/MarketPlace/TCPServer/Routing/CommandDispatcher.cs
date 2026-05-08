@@ -39,10 +39,7 @@ namespace MarketPlace.Backend.TCPServer.Routing
             using (var scope = _serviceProvider.CreateScope())
             {
                 // Resolve handlers within the scope
-                var loginCommandHandler = scope.ServiceProvider.GetRequiredService<LoginCommandHandler>();
-                var createAccountCommandHandler = scope.ServiceProvider.GetRequiredService<CreateAccountCommandHandler>();
                 var checkoutCartCommandHandler = scope.ServiceProvider.GetRequiredService<CheckoutCartCommandHandler>();
-                var depositCashCommandHandler = scope.ServiceProvider.GetRequiredService<DepositCashCommandHandler>();
                 var addItemCommandHandler = scope.ServiceProvider.GetRequiredService<AddItemCommandHandler>();
                 var editItemCommandHandler = scope.ServiceProvider.GetRequiredService<EditItemCommandHandler>();
                 var deleteItemCommandHandler = scope.ServiceProvider.GetRequiredService<DeleteItemCommandHandler>();
@@ -66,12 +63,6 @@ namespace MarketPlace.Backend.TCPServer.Routing
                 {
                     case "CHECKOUT_CART":
                         return await checkoutCartCommandHandler.HandleAsync(request);
-                    case "LOGIN":
-                        return await loginCommandHandler.HandleAsync(request);
-                    case "CREATE_ACCOUNT":
-                        return await createAccountCommandHandler.HandleAsync(request);
-                    case "DEPOSIT_CASH":
-                        return await depositCashCommandHandler.HandleAsync(request);
                     case "ADD_ITEM":
                         return await addItemCommandHandler.HandleAsync(request);
                     case "EDIT_ITEM":

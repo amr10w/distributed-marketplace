@@ -24,8 +24,5 @@
 		<ProjectReference Include="..\MarketPlace.Application\MarketPlace.Application.csproj" />
 		<ProjectReference Include="..\Marketplace.Infrastructure\MarketPlace.Infrastructure.csproj" />
 	</ItemGroup>
-  <ItemGroup>
-    <Folder Include="Controllers\" />
-  </ItemGroup>
 
 </Project>
