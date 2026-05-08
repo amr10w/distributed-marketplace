@@ -7,14 +7,9 @@ using MarketPlace.Infrastructure.Data;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-<<<<<<< Updated upstream
 // using Marketplace.Infrastructure; // When you implement DI extension
-=======
-using Microsoft.Extensions.Logging;
-using System.Text.Json; // Added for camelCase JSON options
 using MarketPlace.Application.Queries;
-using System;
->>>>>>> Stashed changes
+
 
 // This is your Core Engine. It uses ASP.NET Core so we can host REST APIs and TCP Sockets side-by-side.
 var builder = WebApplication.CreateBuilder(args);
@@ -31,6 +26,16 @@ builder.Services.AddScoped<UpdateCartItemQuantityCommandHandler>();
 builder.Services.AddScoped<AddToCartCommandHandler>();
 builder.Services.AddScoped<CreateStoreCommandHandler>();
 builder.Services.AddScoped<RemoveFromCartCommandHandler>();
+
+builder.Services.AddScoped<GetUserCartQueryHandler>();
+builder.Services.AddScoped<GetUserInventoryQueryHandler>();
+builder.Services.AddScoped<SearchItemsQueryHandler>();
+builder.Services.AddScoped<GetAllItemsQueryHandler>();
+builder.Services.AddScoped<GetItemByIdQueryHandler>();
+builder.Services.AddScoped<GetWalletQueryHandler>();
+builder.Services.AddScoped<GetUserTransactionsQueryHandler>();
+builder.Services.AddScoped<GetUserReportsQueryHandler>();
+
 // --- 1. Register Infrastructure and Application Services ---
 builder.Services.AddSingleton<CommandDispatcher>();
 builder.Services.AddTransient<LengthPrefixFramer>();

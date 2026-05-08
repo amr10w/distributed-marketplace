@@ -49,7 +49,7 @@ const LandingPage = () => {
       {/* Navbar */}
       <nav className="bg-slate-800 border-b border-slate-700 px-6 py-4">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <span className="text-2xl font-bold text-gold-400">🕌 MarketPlace</span>
+          <span className="text-2xl font-bold text-gold-400"> MarketPlace</span>
           <div className="flex items-center gap-4">
             {user ? (
               <Link
@@ -235,7 +235,7 @@ const LandingPage = () => {
         <div className="max-w-6xl mx-auto px-6 py-12">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <div>
-              <span className="text-xl font-bold text-white">🕌 MarketPlace</span>
+              <span className="text-xl font-bold text-white"> MarketPlace</span>
               <p className="text-sm mt-1 text-slate-500">Distributed Online Marketplace System</p>
             </div>
             <div className="text-sm text-center md:text-right text-slate-500">

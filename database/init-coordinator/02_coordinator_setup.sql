@@ -63,7 +63,6 @@ CREATE TABLE `User` (
     `two_factor_secret` VARCHAR(64)     NULL,
     `is_verified`       TINYINT(1)      NOT NULL DEFAULT 0,
     `is_active`         TINYINT(1)      NOT NULL DEFAULT 1,
-    `profile_image_url` VARCHAR(500)    NULL,
     `created_at`        DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_at`        DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP
                             ON UPDATE CURRENT_TIMESTAMP,
@@ -137,7 +136,9 @@ CREATE TABLE `ReportLog` (
                             'inventory_status',
                             'revenue_by_category',
                             'top_sellers',
-                            'custom'
+                            'custom',
+                            'checkout',
+                            'deposit_cash'
                         )               NOT NULL,
     `parameters`        JSON            NULL,
     `result_snapshot`   JSON            NULL,
@@ -260,7 +261,7 @@ CREATE TABLE `Transaction` (
     `transaction_id`    INT             NOT NULL AUTO_INCREMENT,
     `buyer_id`          INT             NOT NULL,
     `seller_id`         INT             NULL,
-    `category_id`       INT             NOT NULL,
+    `category_id`       INT             ,
     `item_id`           INT             NULL,
     `amount`            DECIMAL(12, 2)  NOT NULL,
     `transaction_type`  ENUM(

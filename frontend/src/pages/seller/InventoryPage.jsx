@@ -1,20 +1,35 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { useProducts } from '../../hooks/useProducts'
 import { useAuth } from '../../hooks/useAuth'
 import { useToast } from '../../hooks/useToast'
+import { itemsApi } from '../../api/itemsApi'
 import { formatCurrency } from '../../lib/utils'
 import LoadingSpinner from '../../components/common/LoadingSpinner'
 
 const InventoryPage = () => {
   const { user } = useAuth()
-  const { products, loading, updateProduct } = useProducts()
   const toast = useToast()
+
+  const [items, setItems] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
   const [editingId, setEditingId] = useState(null)
   const [editQuantity, setEditQuantity] = useState('')
   const [editPrice, setEditPrice] = useState('')
+  const [saving, setSaving] = useState(false)
 
-  if (loading) return <LoadingSpinner />
+  useEffect(() => {
+    if (!user) return
+    let cancelled = false
+    setLoading(true)
+    itemsApi.getUserInventory({ ownerId: user.id }).then((result) => {
+      if (cancelled) return
+      if (result.success) setItems(result.items)
+      else setError(result.error)
+      setLoading(false)
+    })
+    return () => { cancelled = true }
+  }, [user?.id])
 
   if (!user) {
     return (
@@ -26,11 +41,21 @@ const InventoryPage = () => {
     )
   }
 
-  const myItems = products.filter((p) => p.sellerId === user.id)
+  if (loading) return <LoadingSpinner />
 
-  const totalValue = myItems.reduce((sum, item) => sum + item.price * item.quantity, 0)
-  const totalUnits = myItems.reduce((sum, item) => sum + item.quantity, 0)
-  const lowStock = myItems.filter((p) => p.quantity > 0 && p.quantity <= 5)
+  if (error) {
+    return (
+      <div className="text-center py-12">
+        <div className="text-6xl mb-4">⚠️</div>
+        <h3 className="text-xl font-semibold text-slate-200 mb-2">Failed to load inventory</h3>
+        <p className="text-slate-400">{error}</p>
+      </div>
+    )
+  }
+
+  const totalValue = items.reduce((sum, item) => sum + item.price * item.quantity, 0)
+  const totalUnits = items.reduce((sum, item) => sum + item.quantity, 0)
+  const lowStock = items.filter((p) => p.quantity > 0 && p.quantity <= 5)
 
   const startEditing = (item) => {
     setEditingId(item.id)
@@ -38,14 +63,36 @@ const InventoryPage = () => {
     setEditPrice(item.price.toString())
   }
 
-  const saveEdit = (id) => {
-    updateProduct(id, {
-      quantity: parseInt(editQuantity),
-      price: parseFloat(editPrice),
-      status: parseInt(editQuantity) > 0 ? 'AVAILABLE' : 'OUT_OF_STOCK',
-    })
-    setEditingId(null)
-    toast.success('Inventory updated successfully!')
+  const saveEdit = async (item) => {
+    const newQty = parseInt(editQuantity)
+    const newPrice = parseFloat(editPrice)
+    if (isNaN(newQty) || newQty < 0) { toast.error('Invalid quantity'); return }
+    if (isNaN(newPrice) || newPrice <= 0) { toast.error('Invalid price'); return }
+
+    setSaving(true)
+    try {
+      const result = await itemsApi.editItem({
+        requestingUserId: user.id,
+        itemId: item.id,
+        price: newPrice !== item.price ? newPrice : null,
+        stockQuantity: newQty !== item.quantity ? newQty : null,
+      })
+      if (!result.success) {
+        toast.error(result.error)
+        return
+      }
+      setItems((prev) =>
+        prev.map((i) =>
+          i.id === item.id ? { ...i, price: newPrice, quantity: newQty } : i
+        )
+      )
+      setEditingId(null)
+      toast.success('Inventory updated!')
+    } catch (err) {
+      toast.error(err.message || 'Network error')
+    } finally {
+      setSaving(false)
+    }
   }
 
   const cancelEdit = () => {
@@ -56,17 +103,15 @@ const InventoryPage = () => {
 
   return (
     <div className="animate-fade-in">
-      {/* Header */}
       <div className="mb-6">
         <h1 className="text-3xl font-bold text-slate-100">Inventory Management</h1>
         <p className="text-slate-400 mt-1">Track and update your stock levels</p>
       </div>
 
-      {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-6">
         <div className="bg-slate-800 rounded-lg border border-slate-700 p-4">
           <p className="text-sm text-slate-400">Total Products</p>
-          <p className="text-2xl font-bold text-slate-100">{myItems.length}</p>
+          <p className="text-2xl font-bold text-slate-100">{items.length}</p>
         </div>
         <div className="bg-slate-800 rounded-lg border border-slate-700 p-4">
           <p className="text-sm text-slate-400">Total Units</p>
@@ -82,7 +127,6 @@ const InventoryPage = () => {
         </div>
       </div>
 
-      {/* Low Stock Warning */}
       {lowStock.length > 0 && (
         <div className="bg-amber-900/30 border border-gold-600 rounded-lg p-4 mb-6">
           <h3 className="font-medium text-gold-400 mb-2">⚠️ Low Stock Warning</h3>
@@ -96,8 +140,7 @@ const InventoryPage = () => {
         </div>
       )}
 
-      {/* Inventory Table */}
-      {myItems.length > 0 ? (
+      {items.length > 0 ? (
         <div className="bg-slate-800 rounded-lg border border-slate-700 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
@@ -113,7 +156,7 @@ const InventoryPage = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-700">
-                {myItems.map((item) => (
+                {items.map((item) => (
                   <tr key={item.id} className="hover:bg-slate-900 transition">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
@@ -138,7 +181,7 @@ const InventoryPage = () => {
                           onChange={(e) => setEditPrice(e.target.value)}
                           className="w-24 px-2 py-1 border border-slate-600 rounded text-sm focus:outline-none focus:ring-2 focus:ring-gold-500 bg-slate-900 text-slate-100"
                           step="0.01"
-                          min="0"
+                          min="0.01"
                         />
                       ) : (
                         <span className="text-sm font-medium text-gold-400">
@@ -158,11 +201,7 @@ const InventoryPage = () => {
                       ) : (
                         <span className={
                           'text-sm font-medium ' +
-                          (item.quantity === 0
-                            ? 'text-red-400'
-                            : item.quantity <= 5
-                            ? 'text-gold-400'
-                            : 'text-slate-100')
+                          (item.quantity === 0 ? 'text-red-400' : item.quantity <= 5 ? 'text-gold-400' : 'text-slate-100')
                         }>
                           {item.quantity}
                         </span>
@@ -172,34 +211,30 @@ const InventoryPage = () => {
                       {formatCurrency(item.price * item.quantity)}
                     </td>
                     <td className="px-6 py-4">
-                      <span
-                        className={
-                          'text-xs px-2 py-1 rounded-full font-medium border ' +
-                          (item.quantity === 0
-                            ? 'bg-red-900/30 text-red-400 border-red-800'
-                            : item.quantity <= 5
-                            ? 'bg-amber-900/30 text-gold-400 border-gold-700'
-                            : 'bg-emerald-900/30 text-emerald-400 border-emerald-800')
-                        }
-                      >
-                        {item.quantity === 0
-                          ? 'Out of Stock'
+                      <span className={
+                        'text-xs px-2 py-1 rounded-full font-medium border ' +
+                        (item.quantity === 0
+                          ? 'bg-red-900/30 text-red-400 border-red-800'
                           : item.quantity <= 5
-                          ? 'Low Stock'
-                          : 'In Stock'}
+                          ? 'bg-amber-900/30 text-gold-400 border-gold-700'
+                          : 'bg-emerald-900/30 text-emerald-400 border-emerald-800')
+                      }>
+                        {item.quantity === 0 ? 'Out of Stock' : item.quantity <= 5 ? 'Low Stock' : 'In Stock'}
                       </span>
                     </td>
                     <td className="px-6 py-4 text-right">
                       {editingId === item.id ? (
                         <div className="flex items-center justify-end gap-2">
                           <button
-                            onClick={() => saveEdit(item.id)}
-                            className="text-emerald-400 hover:text-emerald-400 text-sm font-medium"
+                            onClick={() => saveEdit(item)}
+                            disabled={saving}
+                            className="text-emerald-400 hover:text-emerald-300 text-sm font-medium disabled:opacity-50"
                           >
-                            Save
+                            {saving ? 'Saving…' : 'Save'}
                           </button>
                           <button
                             onClick={cancelEdit}
+                            disabled={saving}
                             className="text-slate-400 hover:text-slate-200 text-sm font-medium"
                           >
                             Cancel

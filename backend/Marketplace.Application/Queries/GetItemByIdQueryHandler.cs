@@ -1,17 +1,16 @@
-﻿using MarketPlace.Application.DTOs;
+using MarketPlace.Application.DTOs;
 using MarketPlace.Domain.Repositories;
-using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace MarketPlace.Application.Queries
 {
-    public class SearchItemsQueryHandler
+    public class GetItemByIdQueryHandler
     {
         private readonly IItemRepository _itemRepository;
         private readonly IStoreRepository _storeRepository;
 
-        public SearchItemsQueryHandler(IItemRepository itemRepository, IStoreRepository storeRepository)
+        public GetItemByIdQueryHandler(IItemRepository itemRepository, IStoreRepository storeRepository)
         {
             _itemRepository = itemRepository;
             _storeRepository = storeRepository;
@@ -19,25 +18,35 @@ namespace MarketPlace.Application.Queries
 
         public async Task<JsonEnvelope> HandleAsync(JsonEnvelope request)
         {
-            var payload = JsonSerializer.Deserialize<SearchItemPayload>(request.Payload);
-            if (payload is null || string.IsNullOrWhiteSpace(payload.SearchTerm))
+            var payload = JsonSerializer.Deserialize<GetItemByIdPayload>(request.Payload);
+            if (payload is null || payload.ItemId <= 0)
             {
                 return new JsonEnvelope
                 {
                     CorrelationId = request.CorrelationId,
-                    Command = "SEARCH_FAILED",
-                    Payload = JsonSerializer.Serialize(new { Message = "Invalid search term" })
+                    Command = "GET_ITEM_FAILED",
+                    Payload = JsonSerializer.Serialize(new { Message = "Invalid item ID" })
                 };
             }
 
-            var items = (await _itemRepository.SearchAvailableItemsAsync(payload.SearchTerm)).ToList();
-            var storeMap = (await _storeRepository.GetAllAsync())
-                .ToDictionary(s => s.StoreId);
-
-            var enriched = items.Select(item =>
+            var item = await _itemRepository.GetByIdAsync(payload.ItemId);
+            if (item is null)
             {
-                storeMap.TryGetValue(item.StoreId, out var store);
-                return new
+                return new JsonEnvelope
+                {
+                    CorrelationId = request.CorrelationId,
+                    Command = "GET_ITEM_FAILED",
+                    Payload = JsonSerializer.Serialize(new { Message = "Item not found" })
+                };
+            }
+
+            var store = await _storeRepository.GetByIdAsync(item.StoreId);
+
+            return new JsonEnvelope
+            {
+                CorrelationId = request.CorrelationId,
+                Command = "GET_ITEM_SUCCESS",
+                Payload = JsonSerializer.Serialize(new
                 {
                     item.ItemId,
                     item.StoreId,
@@ -53,16 +62,10 @@ namespace MarketPlace.Application.Queries
                     Status = item.Status.ToString(),
                     item.CreatedAt,
                     item.UpdatedAt,
-                };
-            }).ToList();
-
-            return new JsonEnvelope
-            {
-                CorrelationId = request.CorrelationId,
-                Command = "SEARCH_ITEMS_SUCCESS",
-                Payload = JsonSerializer.Serialize(new { Items = enriched })
+                })
             };
         }
     }
-    public record SearchItemPayload(string SearchTerm);
+
+    public record GetItemByIdPayload(int ItemId);
 }

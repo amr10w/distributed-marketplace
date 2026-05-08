@@ -11,12 +11,14 @@ namespace MarketPlace.Application.Queries
         private readonly IUserRepository _userRepository;
         private readonly ICartRepository _cartRepository;
         private readonly IItemRepository _itemRepository;
+        private readonly IStoreRepository _storeRepository;
 
-        public GetUserCartQueryHandler(IUserRepository userRepository, ICartRepository cartRepository, IItemRepository itemRepository)
+        public GetUserCartQueryHandler(IUserRepository userRepository, ICartRepository cartRepository, IItemRepository itemRepository, IStoreRepository storeRepository)
         {
             _userRepository = userRepository;
             _cartRepository = cartRepository;
             _itemRepository = itemRepository;
+            _storeRepository = storeRepository;
         }
 
         public async Task<JsonEnvelope> HandleAsync(JsonEnvelope request)
@@ -98,6 +100,7 @@ namespace MarketPlace.Application.Queries
                 if (item == null)
                     continue;
 
+                var store = await _storeRepository.GetByIdAsync(item.StoreId);
                 var lineTotal = item.Price * cartItem.Quantity;
                 totalAmount += lineTotal;
                 totalItems += cartItem.Quantity;
@@ -106,7 +109,13 @@ namespace MarketPlace.Application.Queries
                 {
                     CartItemId = cartItem.CartItemId,
                     ItemId = cartItem.ItemId,
+                    StoreId = item.StoreId,
+                    StoreName = store?.StoreName ?? "",
+                    SellerId = store?.OwnerId ?? 0,
+                    CategoryId = item.CategoryId,
                     Name = item.Name,
+                    Brand = item.Brand ?? "",
+                    ImageUrl = item.ImageUrl ?? "",
                     Price = item.Price,
                     Quantity = cartItem.Quantity,
                     LineTotal = lineTotal,

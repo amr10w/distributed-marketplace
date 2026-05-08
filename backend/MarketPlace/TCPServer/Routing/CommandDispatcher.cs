@@ -3,7 +3,8 @@ using MarketPlace.Application.DTOs;
 using System.Text.Json;
 using System;
 using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection; 
+using Microsoft.Extensions.DependencyInjection;
+using MarketPlace.Application.Queries;
 
 namespace MarketPlace.Backend.TCPServer.Routing
 {
@@ -47,6 +48,17 @@ namespace MarketPlace.Backend.TCPServer.Routing
                 var updateCartItemQuantityCommandHandler = scope.ServiceProvider.GetRequiredService<UpdateCartItemQuantityCommandHandler>();
                 var createStoreCommandHandler = scope.ServiceProvider.GetRequiredService<CreateStoreCommandHandler>();
 
+                //Resolve Queries within the scope
+                var getUserCartQueryHandler = scope.ServiceProvider.GetRequiredService<GetUserCartQueryHandler>();
+                var getUsertInventoryQueryHandler = scope.ServiceProvider.GetRequiredService<GetUserInventoryQueryHandler>();
+                var searchItemsQueryHandler = scope.ServiceProvider.GetRequiredService<SearchItemsQueryHandler>();
+                var getAllItemsQueryHandler = scope.ServiceProvider.GetRequiredService<GetAllItemsQueryHandler>();
+                var getItemByIdQueryHandler = scope.ServiceProvider.GetRequiredService<GetItemByIdQueryHandler>();
+                var getWalletQueryHandler = scope.ServiceProvider.GetRequiredService<GetWalletQueryHandler>();
+                var getUserTransactionsQueryHandler = scope.ServiceProvider.GetRequiredService<GetUserTransactionsQueryHandler>();
+                var getUserReportsQueryHandler = scope.ServiceProvider.GetRequiredService<GetUserReportsQueryHandler>();
+
+
                 switch (request.Command?.ToUpperInvariant())
                 {
                     case "CHECKOUT_CART":
@@ -65,6 +77,22 @@ namespace MarketPlace.Backend.TCPServer.Routing
                         return await updateCartItemQuantityCommandHandler.HandleAsync(request);
                     case "CREATE_STORE":
                         return await createStoreCommandHandler.HandleAsync(request);
+                    case "GET_USER_CART":
+                        return await getUserCartQueryHandler.HandleAsync(request);
+                    case "GET_USER_INVENTORY":
+                        return await getUsertInventoryQueryHandler.HandleAsync(request);
+                    case "SEARCH_ITEMS":
+                        return await searchItemsQueryHandler.HandleAsync(request);
+                    case "GET_ALL_ITEMS":
+                        return await getAllItemsQueryHandler.HandleAsync(request);
+                    case "GET_ITEM_BY_ID":
+                        return await getItemByIdQueryHandler.HandleAsync(request);
+                    case "GET_WALLET":
+                        return await getWalletQueryHandler.HandleAsync(request);
+                    case "GET_USER_TRANSACTIONS":
+                        return await getUserTransactionsQueryHandler.HandleAsync(request);
+                    case "GET_USER_REPORTS":
+                        return await getUserReportsQueryHandler.HandleAsync(request);
                     default:
                         return BuildResponse(
                             request.CorrelationId,

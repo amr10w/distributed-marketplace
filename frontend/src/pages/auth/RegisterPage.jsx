@@ -19,7 +19,7 @@ const RegisterPage = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value })
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
 
@@ -39,19 +39,22 @@ const RegisterPage = () => {
     }
 
     setLoading(true)
-    const result = register({
-      username: formData.username,
-      email: formData.email,
-      fullName: formData.fullName,
-      password: formData.password,
-    })
+    try {
+      const result = await register({
+        username: formData.username,
+        email: formData.email,
+        fullName: formData.fullName,
+        password: formData.password,
+      })
 
-    if (result.success) {
-      navigate('/marketplace')
-    } else {
-      setError(result.error)
+      if (result.success) {
+        navigate('/marketplace')
+      } else {
+        setError(result.error)
+      }
+    } finally {
+      setLoading(false)
     }
-    setLoading(false)
   }
 
   return (
@@ -63,7 +66,7 @@ const RegisterPage = () => {
       <div className="w-full max-w-md relative z-10">
         {/* Logo */}
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gold-400">🕌 MarketPlace</h1>
+          <h1 className="text-4xl font-bold text-gold-400"> MarketPlace</h1>
           <p className="text-slate-400 mt-2">Create your account and start trading</p>
         </div>
 

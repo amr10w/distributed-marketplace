@@ -7,7 +7,7 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Brand */}
           <div>
-            <h3 className="text-lg font-bold text-gold-400 mb-3">🕌 MarketPlace</h3>
+            <h3 className="text-lg font-bold text-gold-400 mb-3"> MarketPlace</h3>
             <p className="text-sm text-slate-400">
               A distributed online marketplace system built for CSE352s - Parallel and Distributed Systems.
             </p>

@@ -1,7 +1,6 @@
 ﻿using MarketPlace.Application.DTOs;
 using MarketPlace.Domain.Entities;
 using MarketPlace.Domain.Repositories;
-using System;
 using System.Text.Json;
 using System.Threading.Tasks;
 
@@ -11,13 +10,13 @@ namespace MarketPlace.Application.Commands
     {
         private readonly IUserRepository _userRepository;
         private readonly IWalletRepository _walletRepository;
-        private readonly ITransactionRepository _transactionRepository;
+        private readonly IReportLogRepository _reportLogRepository;
 
-        public DepositCashCommandHandler(IUserRepository userRepository, IWalletRepository walletRepository, ITransactionRepository transactionRepository)
+        public DepositCashCommandHandler(IUserRepository userRepository, IWalletRepository walletRepository, IReportLogRepository reportLogRepository)
         {
             _userRepository = userRepository;
             _walletRepository = walletRepository;
-            _transactionRepository = transactionRepository;
+            _reportLogRepository = reportLogRepository;
         }
 
         public async Task<JsonEnvelope> HandleAsync(JsonEnvelope request)
@@ -98,15 +97,23 @@ namespace MarketPlace.Application.Commands
                     });
             }
 
-            var transaction = new Transaction
+            var reportLog = new ReportLog
             {
-                BuyerId = user.UserId,
-                Amount = amount,
-                TransactionType = TransactionType.Deposit,
-                Status = TransactionStatus.Completed
+                GeneratedBy = userid,
+                ReportType = ReportType.DepositCash,
+                Parameters = JsonSerializer.Serialize(new
+                {
+                    UserId = userid,
+                    Amount = amount
+                }),
+                ResultSnapshot = JsonSerializer.Serialize(new
+                {
+                    NewBalance = wallet.Balance,
+                    Status = "completed"
+                }),
+                GeneratedAt = DateTime.UtcNow
             };
-
-            await _transactionRepository.AddAsync(transaction);
+            await _reportLogRepository.AddAsync(reportLog);
 
             return BuildResponse(
                 request.CorrelationId,

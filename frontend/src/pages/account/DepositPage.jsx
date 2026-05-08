@@ -1,18 +1,18 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
-import { useTransactions } from '../../hooks/useTransactions'
 import { useToast } from '../../hooks/useToast'
+import { walletApi } from '../../api/walletApi'
 import { formatCurrency } from '../../lib/utils'
 
 const DepositPage = () => {
-  const { user, updateBalance } = useAuth()
-  const { addTransaction } = useTransactions()
+  const { user, setBalance } = useAuth()
   const toast = useToast()
   const navigate = useNavigate()
   const [amount, setAmount] = useState('')
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
+  const [newBalance, setNewBalance] = useState(0)
   const [loading, setLoading] = useState(false)
 
   const quickAmounts = [50, 100, 250, 500, 1000, 2500]
@@ -27,7 +27,7 @@ const DepositPage = () => {
     )
   }
 
-  const handleDeposit = (e) => {
+  const handleDeposit = async (e) => {
     e.preventDefault()
     setError('')
     const depositAmount = parseFloat(amount)
@@ -39,23 +39,28 @@ const DepositPage = () => {
     }
 
     if (depositAmount > 100000) {
-      setError('Maximum deposit amount is \$100,000')
+      setError('Maximum deposit amount is $100,000')
       return
     }
 
     setLoading(true)
-    setTimeout(() => {
-      updateBalance(depositAmount)
-      addTransaction({
-        type: 'DEPOSIT',
-        userId: user.id,
-        userName: user.fullName,
-        amount: depositAmount,
-      })
+    try {
+      const result = await walletApi.deposit(user.id, depositAmount)
+      if (!result.success) {
+        setError(result.error)
+        toast.error(result.error)
+        return
+      }
+      setBalance(result.newBalance)
+      setNewBalance(result.newBalance)
       setSuccess(true)
-      setLoading(false)
       toast.success('Successfully deposited ' + formatCurrency(depositAmount))
-    }, 1500)
+    } catch (err) {
+      setError(err.message || 'Network error')
+      toast.error('Deposit failed')
+    } finally {
+      setLoading(false)
+    }
   }
 
   if (success) {
@@ -66,10 +71,12 @@ const DepositPage = () => {
             <span className="text-3xl">✅</span>
           </div>
           <h2 className="text-2xl font-bold text-slate-100 mb-2">Deposit Successful!</h2>
-          <p className="text-slate-400 mb-4">{formatCurrency(parseFloat(amount))} has been added to your account</p>
+          <p className="text-slate-400 mb-4">
+            {formatCurrency(parseFloat(amount))} has been added to your wallet
+          </p>
           <div className="bg-slate-900 rounded-lg p-4 mb-6 border border-slate-700">
             <p className="text-sm text-slate-400">New Balance</p>
-            <p className="text-3xl font-bold text-emerald-400">{formatCurrency(user.balance)}</p>
+            <p className="text-3xl font-bold text-emerald-400">{formatCurrency(newBalance)}</p>
           </div>
           <div className="flex gap-3">
             <button
@@ -92,13 +99,16 @@ const DepositPage = () => {
 
   return (
     <div className="max-w-md mx-auto animate-fade-in">
-      <button onClick={() => navigate('/account')} className="text-gold-400 hover:text-gold-300 font-medium mb-6 flex items-center gap-1">
+      <button
+        onClick={() => navigate('/account')}
+        className="text-gold-400 hover:text-gold-300 font-medium mb-6 flex items-center gap-1"
+      >
         ← Back to Account
       </button>
 
       <div className="bg-slate-800 rounded-2xl shadow-sm border border-slate-700 p-8">
         <h1 className="text-2xl font-bold text-slate-100 mb-2">Deposit Cash</h1>
-        <p className="text-slate-400 mb-6">Add funds to your marketplace account</p>
+        <p className="text-slate-400 mb-6">Add funds to your marketplace wallet</p>
 
         <div className="relative bg-gradient-to-r from-gold-400 to-amber-600 rounded-lg p-4 mb-6 overflow-hidden">
           <div className="absolute inset-0 islamic-pattern opacity-10"></div>
@@ -109,7 +119,9 @@ const DepositPage = () => {
         </div>
 
         {error && (
-          <div className="bg-red-900/30 border border-red-800 text-red-400 px-4 py-3 rounded-lg mb-4 text-sm">{error}</div>
+          <div className="bg-red-900/30 border border-red-800 text-red-400 px-4 py-3 rounded-lg mb-4 text-sm">
+            {error}
+          </div>
         )}
 
         <div className="mb-4">
@@ -144,7 +156,7 @@ const DepositPage = () => {
                 onChange={(e) => setAmount(e.target.value)}
                 placeholder="0.00"
                 step="0.01"
-                min="0"
+                min="0.01"
                 className="w-full pl-8 pr-4 py-3 border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-gold-500 focus:border-transparent transition text-lg bg-slate-900 text-slate-100"
               />
             </div>
@@ -162,7 +174,9 @@ const DepositPage = () => {
               </div>
               <div className="border-t border-slate-700 mt-2 pt-2 flex justify-between">
                 <span className="font-medium text-slate-200">New Balance</span>
-                <span className="font-bold text-slate-100">{formatCurrency(user.balance + parseFloat(amount))}</span>
+                <span className="font-bold text-slate-100">
+                  {formatCurrency(user.balance + parseFloat(amount))}
+                </span>
               </div>
             </div>
           )}
@@ -170,7 +184,7 @@ const DepositPage = () => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-emerald-900/300 text-white py-3 rounded-lg font-medium hover:bg-emerald-800 transition disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
+            className="w-full bg-emerald-700 text-white py-3 rounded-lg font-medium hover:bg-emerald-800 transition disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
           >
             {loading ? 'Processing...' : 'Deposit Funds'}
           </button>

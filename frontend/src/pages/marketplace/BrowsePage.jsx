@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
-import { useProducts } from '../../hooks/useProducts'
 import { useAuth } from '../../hooks/useAuth'
+import { productsApi } from '../../api/productsApi'
+import { PRODUCT_CATEGORIES } from '../../lib/constants'
 import ProductCard from '../../components/common/ProductCard'
 import SkeletonCard from '../../components/common/SkeletonCard'
 import Pagination from '../../components/common/Pagination'
@@ -9,11 +10,12 @@ import SearchFilters from '../../components/common/SearchFilters'
 const ITEMS_PER_PAGE = 8
 
 const BrowsePage = () => {
-  const { products } = useProducts()
   const { user } = useAuth()
+  const [items, setItems] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
   const [activeCategory, setActiveCategory] = useState('All')
   const [sortBy, setSortBy] = useState('newest')
-  const [loading, setLoading] = useState(true)
   const [currentPage, setCurrentPage] = useState(1)
   const [advancedFilters, setAdvancedFilters] = useState({
     category: 'All',
@@ -24,24 +26,28 @@ const BrowsePage = () => {
   })
 
   useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 800)
-    return () => clearTimeout(timer)
+    let cancelled = false
+    setLoading(true)
+    setError(null)
+    productsApi.getAllItems().then((result) => {
+      if (cancelled) return
+      if (result.success) {
+        setItems(result.items)
+      } else {
+        setError(result.error)
+      }
+      setLoading(false)
+    })
+    return () => { cancelled = true }
   }, [])
 
-  let availableProducts = products.filter(
-    (p) => (p.status === 'AVAILABLE' || p.quantity > 0)
-  )
+  const categories = ['All', ...PRODUCT_CATEGORIES]
 
-  if (user) {
-    availableProducts = availableProducts.filter((p) => p.sellerId !== user.id)
+  let filtered = items.filter((p) => user ? p.sellerId !== user.id : true)
+
+  if (activeCategory !== 'All') {
+    filtered = filtered.filter((p) => p.category === activeCategory)
   }
-
-  const categories = ['All', ...new Set(products.map((p) => p.category))]
-
-  let filtered = activeCategory === 'All'
-    ? availableProducts
-    : availableProducts.filter((p) => p.category === activeCategory)
-
   if (advancedFilters.category !== 'All') {
     filtered = filtered.filter((p) => p.category === advancedFilters.category)
   }
@@ -99,8 +105,9 @@ const BrowsePage = () => {
         <div>
           <h1 className="text-3xl font-bold text-slate-100">Browse Products</h1>
           <p className="text-slate-400 mt-1">
-            {filtered.length} product{filtered.length !== 1 ? 's' : ''} available
-            {user ? ' from other sellers' : ''}
+            {loading
+              ? 'Loading products...'
+              : `${filtered.length} product${filtered.length !== 1 ? 's' : ''} available${user ? ' from other sellers' : ''}`}
           </p>
         </div>
         <select
@@ -144,6 +151,26 @@ const BrowsePage = () => {
             <SkeletonCard key={i} />
           ))}
         </div>
+      ) : error ? (
+        <div className="text-center py-12 bg-slate-800 rounded-lg border border-red-800">
+          <div className="text-6xl mb-4">⚠️</div>
+          <h3 className="text-xl font-semibold text-slate-200 mb-2">Failed to load products</h3>
+          <p className="text-slate-400">{error}</p>
+          <button
+            onClick={() => {
+              setLoading(true)
+              setError(null)
+              productsApi.getAllItems().then((result) => {
+                if (result.success) setItems(result.items)
+                else setError(result.error)
+                setLoading(false)
+              })
+            }}
+            className="mt-4 text-gold-400 hover:underline font-medium"
+          >
+            Try again
+          </button>
+        </div>
       ) : paginatedProducts.length > 0 ? (
         <>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -162,23 +189,27 @@ const BrowsePage = () => {
           <div className="text-6xl mb-4">🔍</div>
           <h3 className="text-xl font-semibold text-slate-200 mb-2">No products found</h3>
           <p className="text-slate-400">
-            Try adjusting your filters or search criteria
+            {items.length === 0
+              ? 'No products are available yet'
+              : 'Try adjusting your filters or search criteria'}
           </p>
-          <button
-            onClick={() => {
-              setActiveCategory('All')
-              setAdvancedFilters({
-                category: 'All',
-                minPrice: '',
-                maxPrice: '',
-                inStockOnly: false,
-                seller: '',
-              })
-            }}
-            className="mt-4 text-gold-400 hover:underline font-medium"
-          >
-            Clear all filters
-          </button>
+          {items.length > 0 && (
+            <button
+              onClick={() => {
+                setActiveCategory('All')
+                setAdvancedFilters({
+                  category: 'All',
+                  minPrice: '',
+                  maxPrice: '',
+                  inStockOnly: false,
+                  seller: '',
+                })
+              }}
+              className="mt-4 text-gold-400 hover:underline font-medium"
+            >
+              Clear all filters
+            </button>
+          )}
         </div>
       )}
     </div>

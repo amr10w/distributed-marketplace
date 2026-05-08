@@ -1,13 +1,12 @@
 import { Link } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
-import { useProducts } from '../../hooks/useProducts'
-import { useTransactions } from '../../hooks/useTransactions'
+import { useReportData } from '../../hooks/useReportData'
 import { formatCurrency } from '../../lib/utils'
+import LoadingSpinner from '../../components/common/LoadingSpinner'
 
 const ReportsPage = () => {
   const { user } = useAuth()
-  const { products } = useProducts()
-  const { transactions, getSalesByUser, getPurchasesByUser, getDepositsByUser } = useTransactions()
+  const { items, transactions, sales, purchases, loading } = useReportData()
 
   if (!user) {
     return (
@@ -19,20 +18,16 @@ const ReportsPage = () => {
     )
   }
 
-  const myProducts = products.filter((p) => p.sellerId === user.id)
-  const mySales = getSalesByUser(user.id)
-  const myPurchases = getPurchasesByUser(user.id)
-  const myDeposits = getDepositsByUser(user.id)
+  if (loading) return <LoadingSpinner />
 
-  const totalRevenue = mySales.reduce((sum, t) => sum + t.amount, 0)
-  const totalSpent = myPurchases.reduce((sum, t) => sum + t.amount, 0)
-  const totalDeposited = myDeposits.reduce((sum, t) => sum + t.amount, 0)
-  const inventoryValue = myProducts.reduce((sum, p) => sum + p.price * p.quantity, 0)
+  const totalRevenue = sales.reduce((sum, t) => sum + t.amount, 0)
+  const totalSpent = purchases.reduce((sum, t) => sum + t.amount, 0)
+  const inventoryValue = items.reduce((sum, i) => sum + i.price * i.quantity, 0)
 
   const reportCards = [
     {
       title: 'Transaction Report',
-      description: 'View all transactions including purchases, sales, and deposits',
+      description: 'View all your purchases and sales',
       icon: '📜',
       link: '/reports/transactions',
       stats: [
@@ -47,7 +42,7 @@ const ReportsPage = () => {
       icon: '💰',
       link: '/reports/sales',
       stats: [
-        { label: 'Total Sales', value: mySales.length },
+        { label: 'Total Sales', value: sales.length },
         { label: 'Revenue', value: formatCurrency(totalRevenue) },
       ],
       gradient: 'from-emerald-500 to-emerald-600',
@@ -58,10 +53,43 @@ const ReportsPage = () => {
       icon: '🛒',
       link: '/reports/purchases',
       stats: [
-        { label: 'Total Purchases', value: myPurchases.length },
+        { label: 'Total Purchases', value: purchases.length },
         { label: 'Total Spent', value: formatCurrency(totalSpent) },
       ],
       gradient: 'from-lapis-500 to-lapis-600',
+    },
+    {
+      title: 'Checkout Report',
+      description: 'Audit log of every cart checkout you complete',
+      icon: '🛍️',
+      link: '/reports/checkout',
+      stats: [
+        { label: 'Source', value: 'ReportLog' },
+        { label: 'Type', value: 'checkout' },
+      ],
+      gradient: 'from-rose-500 to-red-600',
+    },
+    {
+      title: 'Deposit Cash Report',
+      description: 'Audit log of every cash deposit to your wallet',
+      icon: '💵',
+      link: '/reports/deposit-cash',
+      stats: [
+        { label: 'Source', value: 'ReportLog' },
+        { label: 'Type', value: 'deposit_cash' },
+      ],
+      gradient: 'from-emerald-500 to-teal-600',
+    },
+    {
+      title: 'Activity Log',
+      description: 'Combined view of all checkouts and deposits',
+      icon: '📋',
+      link: '/reports/activity',
+      stats: [
+        { label: 'Source', value: 'ReportLog' },
+        { label: 'Events', value: 'All' },
+      ],
+      gradient: 'from-purple-500 to-fuchsia-600',
     },
   ]
 
@@ -69,7 +97,7 @@ const ReportsPage = () => {
     <div className="animate-fade-in">
       <div className="mb-6">
         <h1 className="text-3xl font-bold text-slate-100">Reports Dashboard</h1>
-        <p className="text-slate-400 mt-1">View detailed reports about your marketplace activity</p>
+        <p className="text-slate-400 mt-1">Detailed reports about your marketplace activity</p>
       </div>
 
       {/* Summary Stats */}
@@ -129,7 +157,9 @@ const ReportsPage = () => {
                   </div>
                 ))}
               </div>
-              <div className="mt-4 text-gold-400 font-medium text-sm group-hover:text-gold-300 transition">View Full Report →</div>
+              <div className="mt-4 text-gold-400 font-medium text-sm group-hover:text-gold-300 transition">
+                View Full Report →
+              </div>
             </div>
           </Link>
         ))}
@@ -141,10 +171,6 @@ const ReportsPage = () => {
         <table className="w-full">
           <tbody className="divide-y divide-slate-700">
             <tr>
-              <td className="py-3 text-slate-300">Total Deposited</td>
-              <td className="py-3 text-right font-medium text-emerald-400">+{formatCurrency(totalDeposited)}</td>
-            </tr>
-            <tr>
               <td className="py-3 text-slate-300">Total Revenue from Sales</td>
               <td className="py-3 text-right font-medium text-emerald-400">+{formatCurrency(totalRevenue)}</td>
             </tr>
@@ -152,8 +178,12 @@ const ReportsPage = () => {
               <td className="py-3 text-slate-300">Total Spent on Purchases</td>
               <td className="py-3 text-right font-medium text-red-400">-{formatCurrency(totalSpent)}</td>
             </tr>
+            <tr>
+              <td className="py-3 text-slate-300">Inventory Value (unsold stock)</td>
+              <td className="py-3 text-right font-medium text-gold-400">{formatCurrency(inventoryValue)}</td>
+            </tr>
             <tr className="font-bold">
-              <td className="py-3 text-slate-100">Current Balance</td>
+              <td className="py-3 text-slate-100">Current Wallet Balance</td>
               <td className="py-3 text-right text-gold-400">{formatCurrency(user.balance)}</td>
             </tr>
           </tbody>

@@ -9,10 +9,14 @@ namespace MarketPlace.Application.Commands
     public class LoginCommandHandler
     {
         private readonly IUserRepository _userRepository;
+        private readonly IStoreRepository _storeRepository;
+        private readonly IWalletRepository _walletRepository;
 
-        public LoginCommandHandler(IUserRepository userRepository)
+        public LoginCommandHandler(IUserRepository userRepository, IStoreRepository storeRepository, IWalletRepository walletRepository)
         {
             _userRepository = userRepository;
+            _storeRepository = storeRepository;
+            _walletRepository = walletRepository;
         }
 
         public async Task<JsonEnvelope> HandleAsync(JsonEnvelope request)
@@ -92,6 +96,9 @@ namespace MarketPlace.Application.Commands
                     });
             }
 
+            var store = await _storeRepository.GetByOwnerIdAsync(user.UserId);
+            var wallet = await _walletRepository.GetByUserIdAsync(user.UserId);
+
             return BuildResponse(
                 request.CorrelationId,
                 "LOGIN_SUCCESS",
@@ -100,7 +107,10 @@ namespace MarketPlace.Application.Commands
                     Success = true,
                     Message = "Login successful.",
                     UserId = user.UserId,
-                    Username = user.Username
+                    Username = user.Username,
+                    StoreId = store?.StoreId,
+                    StoreName = store?.StoreName,
+                    Balance = wallet?.Balance ?? 0m
                 });
         }
 
