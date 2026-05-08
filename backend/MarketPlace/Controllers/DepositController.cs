@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace MarketPlace.Backend.Controllers
 {
     [ApiController]
-    [Route("api/wallet")] 
+    [Route("api/wallet")] // Grouped under wallet for clean routing
     public class DepositController : ControllerBase
     {
         private readonly IUserRepository _userRepository;

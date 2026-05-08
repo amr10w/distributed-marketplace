@@ -7,9 +7,10 @@ using MarketPlace.Infrastructure.Data;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-// using Marketplace.Infrastructure; // When you implement DI extension
+using Microsoft.Extensions.Logging;
+using System.Text.Json; // Added for camelCase JSON options
 using MarketPlace.Application.Queries;
-
+using System;
 
 // This is your Core Engine. It uses ASP.NET Core so we can host REST APIs and TCP Sockets side-by-side.
 var builder = WebApplication.CreateBuilder(args);
