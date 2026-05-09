@@ -16,7 +16,7 @@ namespace MarketPlace.Infrastructure.Data
         public DbSet<Item> Items => Set<Item>();
         public DbSet<Transaction> Transactions => Set<Transaction>();
         public DbSet<ReportLog> ReportLogs => Set<ReportLog>();
-
+        public DbSet<Message> Messages => Set<Message>();
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -32,6 +32,7 @@ namespace MarketPlace.Infrastructure.Data
             ConfigureCart(modelBuilder);
             ConfigureCartItem(modelBuilder);
             ConfigureReportLog(modelBuilder);
+            ConfigureMessage(modelBuilder);
         }
 
 
@@ -235,6 +236,39 @@ namespace MarketPlace.Infrastructure.Data
 
                 e.HasIndex(ci => ci.CartId);
                 e.HasIndex(ci => ci.ItemId);
+            });
+        }
+        private static void ConfigureMessage(ModelBuilder b)
+        {
+            b.Entity<Message>(e =>
+            {
+                e.ToTable("Message");
+                e.HasKey(m => m.Id);
+                e.Property(m => m.Id).HasColumnName("message_id");
+
+                e.Property(m => m.SenderId).HasColumnName("sender_id").IsRequired();
+                e.Property(m => m.ReceiverId).HasColumnName("receiver_id").IsRequired();
+
+                // Using longtext to match your ReportLog configuration style
+                e.Property(m => m.Content).HasColumnName("content").HasColumnType("longtext").IsRequired();
+                e.Property(m => m.SentAt).HasColumnName("sent_at");
+                e.Property(m => m.IsRead).HasColumnName("is_read").HasDefaultValue(false);
+
+                // Configure relationships to User and prevent cascade delete conflicts
+                e.HasOne(m => m.Sender)
+                 .WithMany()
+                 .HasForeignKey(m => m.SenderId)
+                 .OnDelete(DeleteBehavior.Restrict);
+
+                e.HasOne(m => m.Receiver)
+                 .WithMany()
+                 .HasForeignKey(m => m.ReceiverId)
+                 .OnDelete(DeleteBehavior.Restrict);
+
+                // Indexes for faster lookups when querying chat history
+                e.HasIndex(m => m.SenderId);
+                e.HasIndex(m => m.ReceiverId);
+                e.HasIndex(m => m.SentAt);
             });
         }
     }

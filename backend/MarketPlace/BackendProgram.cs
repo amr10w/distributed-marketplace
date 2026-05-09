@@ -36,9 +36,12 @@ builder.Services.AddScoped<GetItemByIdQueryHandler>();
 builder.Services.AddScoped<GetWalletQueryHandler>();
 builder.Services.AddScoped<GetUserTransactionsQueryHandler>();
 builder.Services.AddScoped<GetUserReportsQueryHandler>();
+builder.Services.AddScoped<SendMessageCommandHandler>();
+builder.Services.AddScoped<GetChatHistoryQueryHandler>();
 
 // --- 1. Register Infrastructure and Application Services ---
 builder.Services.AddSingleton<CommandDispatcher>();
+builder.Services.AddSingleton<TcpConnectionManager>();
 builder.Services.AddTransient<LengthPrefixFramer>();
 
 builder.Services.AddInfrastructure(builder.Configuration); // This one line registers all your repositories!
