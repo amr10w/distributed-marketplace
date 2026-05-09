@@ -154,67 +154,39 @@ CREATE TABLE `ReportLog` (
 );
 
 -- ============================================================
--- Conversation must be created BEFORE Message (Message has FK to Conversation)
--- ============================================================
 
-CREATE TABLE `Conversation` (
-    `conversation_id`   INT         NOT NULL AUTO_INCREMENT,
-    `user1_id`          INT         NOT NULL,
-    `user2_id`          INT         NOT NULL,
-    `item_id`           INT         NULL,
-    `created_at`        DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    `updated_at`        DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP
-                            ON UPDATE CURRENT_TIMESTAMP,
-    PRIMARY KEY (`conversation_id`),
-    UNIQUE  INDEX `idx_conv_unique` (`user1_id`, `user2_id`, `item_id`),
-    INDEX `idx_conv_user1` (`user1_id`),
-    INDEX `idx_conv_user2` (`user2_id`),
-    INDEX `idx_conv_item`  (`item_id`),
-    CONSTRAINT `fk_conv_user1`
-        FOREIGN KEY (`user1_id`) REFERENCES `User` (`user_id`)
-        ON DELETE CASCADE
-        ON UPDATE CASCADE,
-    CONSTRAINT `fk_conv_user2`
-        FOREIGN KEY (`user2_id`) REFERENCES `User` (`user_id`)
-        ON DELETE CASCADE
-        ON UPDATE CASCADE
+
+CREATE TABLE Message (
+    message_id  INT             NOT NULL AUTO_INCREMENT,
+    sender_id   INT             NOT NULL,
+    receiver_id INT             NOT NULL,
+    content     TEXT            NOT NULL,   -- consider TEXT over LONGTEXT
+    sent_at     DATETIME(6)     NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    is_read     TINYINT(1)      NOT NULL DEFAULT 0,
+    PRIMARY KEY (message_id),
+    CONSTRAINT FK_Message_Sender
+        FOREIGN KEY (sender_id)   REFERENCES User(user_id) ON DELETE RESTRICT,
+    CONSTRAINT FK_Message_Receiver
+        FOREIGN KEY (receiver_id) REFERENCES User(user_id) ON DELETE RESTRICT
 );
 
+CREATE INDEX IX_Message_sender_id   ON Message (sender_id);
+CREATE INDEX IX_Message_receiver_id ON Message (receiver_id);
+CREATE INDEX IX_Message_sent_at     ON Message (sent_at);
+
 DELIMITER $$
-CREATE TRIGGER `trg_conversation_before_insert`
-BEFORE INSERT ON `Conversation`
+CREATE TRIGGER trg_message_before_insert
+BEFORE INSERT ON Message
 FOR EACH ROW
 BEGIN
-    IF NEW.`user1_id` = NEW.`user2_id` THEN
+    IF NEW.sender_id = NEW.receiver_id THEN
         SIGNAL SQLSTATE '45000'
-            SET MESSAGE_TEXT = 'A user cannot start a conversation with themselves';
+            SET MESSAGE_TEXT = 'A user cannot send a message to themselves';
     END IF;
 END$$
 DELIMITER ;
-
 -- ============================================================
 
-CREATE TABLE `Message` (
-    `message_id`        INT         NOT NULL AUTO_INCREMENT,
-    `conversation_id`   INT         NOT NULL,
-    `sender_id`         INT         NOT NULL,
-    `body`              TEXT        NOT NULL,
-    `is_read`           TINYINT(1)  NOT NULL DEFAULT 0,
-    `sent_at`           DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (`message_id`),
-    INDEX `idx_msg_conversation` (`conversation_id`),
-    INDEX `idx_msg_sender`       (`sender_id`),
-    INDEX `idx_msg_sent_at`      (`sent_at`),
-    INDEX `idx_msg_unread`       (`conversation_id`, `is_read`),
-    CONSTRAINT `fk_msg_conversation`
-        FOREIGN KEY (`conversation_id`) REFERENCES `Conversation` (`conversation_id`)
-        ON DELETE CASCADE
-        ON UPDATE CASCADE,
-    CONSTRAINT `fk_msg_sender`
-        FOREIGN KEY (`sender_id`) REFERENCES `User` (`user_id`)
-        ON DELETE CASCADE
-        ON UPDATE CASCADE
-);
 
 -- ============================================================
 -- DISTRIBUTED TABLES (Spider engine — partitioned by category_id)
