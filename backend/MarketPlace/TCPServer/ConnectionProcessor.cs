@@ -7,6 +7,7 @@ using System.Text;
 using System.Text.Json;
 using System.Buffers;
 using System.Threading.Tasks;
+using System.Threading;
 
 namespace MarketPlace.Backend.TCPServer
 {
@@ -15,7 +16,10 @@ namespace MarketPlace.Backend.TCPServer
         private readonly Socket _socket;
         private readonly LengthPrefixFramer _framer;
         private readonly IServiceScopeFactory _scopeFactory;
+        private readonly TcpConnectionManager _connectionManager;
+        private readonly SemaphoreSlim _sendLock = new SemaphoreSlim(1, 1);
 
+        public int? LoggedInUserId { get; set; }
         // Uncommented and updated constructor
         public ConnectionProcessor(Socket socket, LengthPrefixFramer framer, IServiceScopeFactory scopeFactory)
         {
@@ -32,6 +36,33 @@ namespace MarketPlace.Backend.TCPServer
             var readPipeTask = ReadPipeAsync(pipe.Reader);
 
             await Task.WhenAll(fillPipeTask, readPipeTask);
+        }
+
+        public async Task SendEnvelopeAsync(JsonEnvelope envelope)
+        {
+            string responseJson = JsonSerializer.Serialize(envelope);
+            byte[] responsePayload = Encoding.UTF8.GetBytes(responseJson);
+
+            byte[] lengthHeader = BitConverter.GetBytes(responsePayload.Length);
+            if (BitConverter.IsLittleEndian)
+            {
+                Array.Reverse(lengthHeader);
+            }
+
+            byte[] fullPacket = new byte[4 + responsePayload.Length];
+            Buffer.BlockCopy(lengthHeader, 0, fullPacket, 0, 4);
+            Buffer.BlockCopy(responsePayload, 0, fullPacket, 4, responsePayload.Length);
+
+            // Wait for the lock to ensure we have exclusive access to the socket stream
+            await _sendLock.WaitAsync();
+            try
+            {
+                await _socket.SendAsync(fullPacket, SocketFlags.None);
+            }
+            finally
+            {
+                _sendLock.Release();
+            }
         }
 
         private async Task FillPipeAsync(Socket socket, PipeWriter writer)
@@ -105,7 +136,7 @@ namespace MarketPlace.Backend.TCPServer
                                         using var scope = _scopeFactory.CreateScope();
                                         {   
                                             var dispatcher = scope.ServiceProvider.GetRequiredService<CommandDispatcher>();
-                                            JsonEnvelope responseEnvelope = await dispatcher.DispatchAsync(envelope);
+                                            JsonEnvelope responseEnvelope = await dispatcher.DispatchAsync(envelope,this);
                                             if (responseEnvelope != null)
                                             {
                                                 // 2. Serialize the response back to JSON
@@ -163,6 +194,10 @@ namespace MarketPlace.Backend.TCPServer
             }
             finally
             {
+                if (LoggedInUserId.HasValue)
+                {
+                    _connectionManager.RemoveUser(LoggedInUserId.Value, this);
+                }
                 await reader.CompleteAsync();
                 _socket.Close();
             }
