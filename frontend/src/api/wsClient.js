@@ -8,6 +8,7 @@ class WsClient {
     this.socket = null
     this.connecting = null
     this.pending = new Map()
+    this.listeners = new Map()
   }
 
   connect() {
@@ -47,11 +48,21 @@ class WsClient {
         } catch {
           return
         }
-        const entry = this.pending.get(envelope.CorrelationId)
-        if (!entry) return
-        clearTimeout(entry.timer)
-        this.pending.delete(envelope.CorrelationId)
-        entry.resolve(envelope)
+        if (envelope.CorrelationId) {
+          const entry = this.pending.get(envelope.CorrelationId)
+          if (entry) {
+            clearTimeout(entry.timer)
+            this.pending.delete(envelope.CorrelationId)
+            entry.resolve(envelope)
+            return
+          }
+        }
+        const set = this.listeners.get(envelope.Command)
+        if (set) {
+          for (const cb of set) {
+            try { cb(envelope) } catch (err) { console.error('ws listener error:', err) }
+          }
+        }
       }
     })
 
@@ -76,6 +87,21 @@ class WsClient {
       this.pending.set(correlationId, { resolve, reject, timer })
       socket.send(JSON.stringify(envelope))
     })
+  }
+
+  subscribe(command, callback) {
+    let set = this.listeners.get(command)
+    if (!set) {
+      set = new Set()
+      this.listeners.set(command, set)
+    }
+    set.add(callback)
+    return () => {
+      const s = this.listeners.get(command)
+      if (!s) return
+      s.delete(callback)
+      if (s.size === 0) this.listeners.delete(command)
+    }
   }
 }
 

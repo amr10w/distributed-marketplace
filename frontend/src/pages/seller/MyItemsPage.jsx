@@ -6,6 +6,7 @@ import { formatCurrency, formatDate } from '../../lib/utils'
 import { itemsApi } from '../../api/itemsApi'
 import ConfirmModal from '../../components/common/ConfirmModal'
 import SkeletonTable from '../../components/common/SkeletonTable'
+import CsvImportModal from '../../components/seller/CsvImportModal'
 
 const MyItemsPage = () => {
   const { user } = useAuth()
@@ -15,6 +16,7 @@ const MyItemsPage = () => {
   const [loadError, setLoadError] = useState('')
   const [deleteId, setDeleteId] = useState(null)
   const [showConfirm, setShowConfirm] = useState(false)
+  const [showImport, setShowImport] = useState(false)
 
   const loadInventory = useCallback(async () => {
     if (!user) return
@@ -88,12 +90,22 @@ const MyItemsPage = () => {
           <h1 className="text-3xl font-bold text-slate-100">My Items</h1>
           <p className="text-slate-400 mt-1">Manage your listed products</p>
         </div>
-        <Link
-          to="/seller/items/new"
-          className="bg-gold-500 text-white px-6 py-3 rounded-lg font-medium hover:bg-gold-600 transition flex items-center gap-2 shadow-md"
-        >
-          + Add New Item
-        </Link>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setShowImport(true)}
+            disabled={!user.storeId}
+            title={!user.storeId ? 'Create a store first' : 'Bulk-import products from a CSV file'}
+            className="bg-slate-800 text-gold-400 border border-gold-500 px-5 py-3 rounded-lg font-medium hover:bg-amber-900/30 transition flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            📥 Import CSV
+          </button>
+          <Link
+            to="/seller/items/new"
+            className="bg-gold-500 text-white px-6 py-3 rounded-lg font-medium hover:bg-gold-600 transition flex items-center gap-2 shadow-md"
+          >
+            + Add New Item
+          </Link>
+        </div>
       </div>
 
       {loadError && (
@@ -196,6 +208,12 @@ const MyItemsPage = () => {
         message="Are you sure you want to delete this item? This action cannot be undone."
         onConfirm={confirmDelete}
         onCancel={() => { setShowConfirm(false); setDeleteId(null) }}
+      />
+
+      <CsvImportModal
+        isOpen={showImport}
+        onClose={() => setShowImport(false)}
+        onComplete={loadInventory}
       />
     </div>
   )
