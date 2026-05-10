@@ -2,6 +2,7 @@ import { createContext, useState, useEffect } from 'react'
 import usersData from '../mocks/users.json'
 import { authApi } from '../api/authApi'
 import { walletApi } from '../api/walletApi'
+import { chatApi } from '../api/chatApi'
 
 const AuthContext = createContext(null)
 
@@ -39,6 +40,7 @@ const AuthProvider = ({ children }) => {
           createdAt: parsed.createdAt || new Date().toISOString(),
         }
         setUser(hydrated)
+        chatApi.registerSocket(hydrated.id).catch(() => {})
       } catch (error) {
         console.error('Error parsing saved user:', error)
         localStorage.removeItem(USER_KEY)
@@ -79,6 +81,7 @@ const AuthProvider = ({ children }) => {
     }
     setUser(userData)
     localStorage.setItem(USER_KEY, JSON.stringify(userData))
+    chatApi.registerSocket(userData.id).catch(() => {})
     return { success: true, user: userData }
   }
 
@@ -105,6 +108,7 @@ const AuthProvider = ({ children }) => {
     setAllUsers((prev) => [...prev, newUser])
     setUser(newUser)
     localStorage.setItem(USER_KEY, JSON.stringify(newUser))
+    chatApi.registerSocket(newUser.id).catch(() => {})
     return { success: true, user: newUser }
   }
 

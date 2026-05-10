@@ -36,12 +36,16 @@ import DepositCashReport from './pages/reports/DepositCashReport'
 import SettingsPage from './pages/settings/SettingsPage'
 import NotFoundPage from './pages/error/NotFoundPage'
 
+import ChatPage from './pages/chat/ChatPage'
+import ChatNotificationListener from './components/common/ChatNotificationListener'
+
 function App() {
   return (
     <AuthProvider>
       <CartProvider>
         <ToastProvider>
           <Router>
+            <ChatNotificationListener />
             <Routes>
               <Route path="/" element={<LandingPage />} />
               <Route path="/login" element={<LoginPage />} />
@@ -108,6 +112,10 @@ function App() {
 
                 <Route path="/settings" element={
                   <ProtectedRoute><SettingsPage /></ProtectedRoute>
+                } />
+
+                <Route path="/chat/:userId" element={
+                  <ProtectedRoute><ChatPage /></ProtectedRoute>
                 } />
               </Route>
 

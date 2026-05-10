@@ -18,6 +18,7 @@ export const authApi = {
         username: data.username,
         storeId: data.storeId ?? null,
         storeName: data.storeName ?? '',
+        balance: data.balance ?? 0,
       }
     } catch (error) {
       // 3. Axios automatically throws an error for 401 Unauthorized or 400 Bad Request

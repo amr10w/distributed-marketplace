@@ -193,7 +193,7 @@ const ProductDetailPage = () => {
                 <div className="w-10 h-10 bg-gold-600 rounded-full flex items-center justify-center text-white font-bold">
                   {product.storeName ? product.storeName.charAt(0).toUpperCase() : 'S'}
                 </div>
-                <div>
+                <div className="flex-1">
                   <p className="font-medium text-slate-100">{product.storeName}</p>
                   <Link
                     to={'/store/' + product.storeId}
@@ -202,6 +202,22 @@ const ProductDetailPage = () => {
                     Visit Store →
                   </Link>
                 </div>
+                {!isOwnProduct && product.sellerId && (
+                  <button
+                    onClick={() => {
+                      if (!user) {
+                        toast.warning('Please login to message the seller')
+                        navigate('/login')
+                        return
+                      }
+                      const name = encodeURIComponent(product.storeName || 'Seller')
+                      navigate('/chat/' + product.sellerId + '?name=' + name)
+                    }}
+                    className="text-sm bg-slate-800 text-gold-400 border border-gold-500 px-3 py-2 rounded-lg hover:bg-amber-900/30 transition flex items-center gap-1"
+                  >
+                    💬 Message Seller
+                  </button>
+                )}
               </div>
             </div>
 
