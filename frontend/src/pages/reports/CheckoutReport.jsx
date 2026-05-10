@@ -169,17 +169,55 @@ const CheckoutReport = () => {
                             </>
                           )}
                           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                            <div>
-                              <p className="text-xs font-medium text-slate-400 mb-1">Parameters</p>
-                              <pre className="text-xs bg-slate-950 border border-slate-700 rounded p-3 overflow-x-auto text-slate-200">
-{JSON.stringify(r.parameters, null, 2)}
-                              </pre>
+                            <div className="bg-slate-950 border border-slate-700 rounded-lg p-4">
+                              <p className="text-xs font-medium text-slate-400 uppercase tracking-wide mb-3">Order Summary</p>
+                              <dl className="space-y-2 text-sm">
+                                <div className="flex justify-between">
+                                  <dt className="text-slate-400">Order ID</dt>
+                                  <dd className="text-slate-200 font-medium">#{r.id}</dd>
+                                </div>
+                                <div className="flex justify-between">
+                                  <dt className="text-slate-400">Cart ID</dt>
+                                  <dd className="text-slate-200 font-medium">#{r.parameters?.CartId ?? '—'}</dd>
+                                </div>
+                                <div className="flex justify-between">
+                                  <dt className="text-slate-400">Items Purchased</dt>
+                                  <dd className="text-slate-200 font-medium">{r.itemCount}</dd>
+                                </div>
+                                <div className="flex justify-between">
+                                  <dt className="text-slate-400">Date</dt>
+                                  <dd className="text-slate-200 font-medium">{formatDate(r.generatedAt)}</dd>
+                                </div>
+                              </dl>
                             </div>
-                            <div>
-                              <p className="text-xs font-medium text-slate-400 mb-1">Result Snapshot</p>
-                              <pre className="text-xs bg-slate-950 border border-slate-700 rounded p-3 overflow-x-auto text-slate-200">
-{JSON.stringify(r.resultSnapshot, null, 2)}
-                              </pre>
+                            <div className="bg-slate-950 border border-slate-700 rounded-lg p-4">
+                              <p className="text-xs font-medium text-slate-400 uppercase tracking-wide mb-3">Payment Result</p>
+                              <dl className="space-y-2 text-sm">
+                                <div className="flex justify-between">
+                                  <dt className="text-slate-400">Status</dt>
+                                  <dd>
+                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-900/40 text-emerald-300 border border-emerald-800">
+                                      ✓ {r.resultSnapshot?.Status === 'completed' ? 'Completed' : (r.resultSnapshot?.Status ?? 'Completed')}
+                                    </span>
+                                  </dd>
+                                </div>
+                                <div className="flex justify-between">
+                                  <dt className="text-slate-400">Total Charged</dt>
+                                  <dd className="text-red-400 font-medium">-{formatCurrency(r.total)}</dd>
+                                </div>
+                                <div className="flex justify-between">
+                                  <dt className="text-slate-400">Remaining Balance</dt>
+                                  <dd className="text-gold-400 font-medium">{formatCurrency(r.remaining)}</dd>
+                                </div>
+                                <div className="flex justify-between">
+                                  <dt className="text-slate-400">Transactions</dt>
+                                  <dd className="text-slate-200 font-medium">
+                                    {Array.isArray(r.resultSnapshot?.TransactionIds) && r.resultSnapshot.TransactionIds.length > 0
+                                      ? r.resultSnapshot.TransactionIds.map((tid) => `#${tid}`).join(', ')
+                                      : '—'}
+                                  </dd>
+                                </div>
+                              </dl>
                             </div>
                           </div>
                         </td>
