@@ -9,6 +9,14 @@ class WsClient {
     this.connecting = null
     this.pending = new Map()
     this.listeners = new Map()
+    this.handshake = null
+  }
+
+  setHandshake(fn) {
+    this.handshake = fn
+    if (this.socket && this.socket.readyState === WebSocket.OPEN) {
+      try { fn(this) } catch (err) { console.error('handshake error:', err) }
+    }
   }
 
   connect() {
@@ -23,6 +31,9 @@ class WsClient {
       socket.onopen = () => {
         this.socket = socket
         this.connecting = null
+        if (this.handshake) {
+          try { this.handshake(this) } catch (err) { console.error('handshake error:', err) }
+        }
         resolve(socket)
       }
 
