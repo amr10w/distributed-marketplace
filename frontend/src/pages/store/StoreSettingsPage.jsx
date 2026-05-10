@@ -1,14 +1,11 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
-import { useProducts } from '../../hooks/useProducts'
 import { useToast } from '../../hooks/useToast'
-import { formatCurrency } from '../../lib/utils'
 import { storeApi } from '../../api/storeApi'
 
 const StoreSettingsPage = () => {
   const { user, updateUserStore } = useAuth()
-  const { products } = useProducts()
   const toast = useToast()
 
   const [storeName, setStoreName] = useState(user?.storeName || '')
@@ -27,10 +24,6 @@ const StoreSettingsPage = () => {
       </div>
     )
   }
-
-  const myProducts = products.filter((p) => p.sellerId === user.id)
-  const totalValue = myProducts.reduce((sum, p) => sum + p.price * p.quantity, 0)
-  const totalSold = myProducts.reduce((sum, p) => sum + (p.soldCount || 0), 0)
 
   const handleSave = async (e) => {
     e.preventDefault()
@@ -80,9 +73,8 @@ const StoreSettingsPage = () => {
         <p className="text-slate-400 mt-1">Configure your marketplace store</p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left: Store Settings Form */}
-        <div className="lg:col-span-2">
+      <div className="max-w-3xl">
+        <div>
           <div className="bg-slate-800 rounded-2xl shadow-sm border border-slate-700 p-8">
             <h2 className="text-xl font-semibold text-slate-100 mb-6">Store Information</h2>
 
@@ -148,49 +140,6 @@ const StoreSettingsPage = () => {
                 </button>
               </div>
             </form>
-          </div>
-        </div>
-
-        {/* Right: Store Preview */}
-        <div>
-          <div className="bg-slate-800 rounded-2xl shadow-sm border border-slate-700 p-6">
-            <h2 className="text-lg font-semibold text-slate-100 mb-4">Store Preview</h2>
-
-            <div className="relative bg-gradient-to-r from-gold-500 to-gold-600 rounded-xl p-6 text-white mb-4 overflow-hidden">
-              <div className="absolute inset-0 islamic-pattern opacity-15"></div>
-              <div className="relative">
-                <h3 className="text-xl font-bold">{storeName || 'Your Store Name'}</h3>
-                <p className="text-gold-200 text-sm mt-1">by {user.fullName}</p>
-              </div>
-            </div>
-
-            <div className="space-y-3">
-              <div className="flex justify-between items-center py-2 border-b border-slate-700">
-                <span className="text-sm text-slate-400">Products Listed</span>
-                <span className="text-sm font-medium text-slate-100">{myProducts.length}</span>
-              </div>
-              <div className="flex justify-between items-center py-2 border-b border-slate-700">
-                <span className="text-sm text-slate-400">In Stock</span>
-                <span className="text-sm font-medium text-emerald-400">
-                  {myProducts.filter((p) => p.quantity > 0).length}
-                </span>
-              </div>
-              <div className="flex justify-between items-center py-2 border-b border-slate-700">
-                <span className="text-sm text-slate-400">Total Inventory Value</span>
-                <span className="text-sm font-medium text-gold-400">{formatCurrency(totalValue)}</span>
-              </div>
-              <div className="flex justify-between items-center py-2">
-                <span className="text-sm text-slate-400">Total Items Sold</span>
-                <span className="text-sm font-medium text-slate-100">{totalSold}</span>
-              </div>
-            </div>
-
-            <Link
-              to={'/store/' + user.id}
-              className="block mt-4 text-center bg-slate-800 text-slate-200 py-2.5 rounded-lg font-medium hover:bg-amber-900/30 hover:text-gold-300 transition text-sm border border-slate-700"
-            >
-              View Public Store Page →
-            </Link>
           </div>
         </div>
       </div>

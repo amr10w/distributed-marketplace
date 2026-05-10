@@ -1,4 +1,5 @@
 ﻿using MarketPlace.Application.DTOs;
+using System;
 using System.Collections.Concurrent;
 using System.Threading.Tasks;
 
@@ -31,13 +32,22 @@ namespace MarketPlace.Backend.TCPServer
 
         public async Task<bool> TrySendMessageToUserAsync(int userId, JsonEnvelope envelope)
         {
-            if (_activeUsers.TryGetValue(userId, out var processor))
+            if (!_activeUsers.TryGetValue(userId, out var processor))
+            {
+                return false;
+            }
+
+            try
             {
                 await processor.SendEnvelopeAsync(envelope);
                 return true;
             }
-
-            return false; 
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[PUSH FAILED] user {userId}: {ex.Message}. Evicting dead connection.");
+                RemoveUser(userId, processor);
+                return false;
+            }
         }
     }
 }
