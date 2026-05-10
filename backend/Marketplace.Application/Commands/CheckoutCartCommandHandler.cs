@@ -17,8 +17,9 @@ namespace MarketPlace.Application.Commands
         private readonly ITransactionRepository _transactionRepository;
         private readonly IStoreRepository _storeRepository;
         private readonly IReportLogRepository _reportLogRepository;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public CheckoutCartCommandHandler(IUserRepository userRepository, IWalletRepository walletRepository, IItemRepository itemRepository, ICartRepository cartRepository, ITransactionRepository transactionRepository, IStoreRepository storeRepository, IReportLogRepository reportLogRepository)
+        public CheckoutCartCommandHandler(IUserRepository userRepository, IWalletRepository walletRepository, IItemRepository itemRepository, ICartRepository cartRepository, ITransactionRepository transactionRepository, IStoreRepository storeRepository, IReportLogRepository reportLogRepository, IUnitOfWork unitOfWork)
         {
             _userRepository = userRepository;
             _walletRepository = walletRepository;
@@ -27,6 +28,7 @@ namespace MarketPlace.Application.Commands
             _transactionRepository = transactionRepository;
             _storeRepository = storeRepository;
             _reportLogRepository = reportLogRepository;
+            _unitOfWork = unitOfWork;
         }
 
         public async Task<JsonEnvelope> HandleAsync(JsonEnvelope request)
@@ -165,92 +167,104 @@ namespace MarketPlace.Application.Commands
                     });
             }
 
-            buyerWallet.Balance -= totalAmount;
-            buyerWallet.UpdatedAt = DateTime.UtcNow;
-            await _walletRepository.UpdateAsync(buyerWallet);
-
-            foreach (var val in validatedItems)
+            try
             {
-                var cartItem = val.CartItem;
-                var item = val.Item;
-                var store = val.Store;
-
-                var sellerWallet = await _walletRepository.GetByUserIdAsync(store.OwnerId);
-                if (sellerWallet == null)
+                await _unitOfWork.ExecuteInTransactionAsync(async () =>
                 {
-                    return BuildResponse(
-                        request.CorrelationId,
-                        "CHECKOUT_CART_FAILED",
-                        new
-                        {
-                            Success = false,
-                            Message = $"Seller wallet not found for store '{store.StoreName}'."
-                        });
-                }
-                var incomeAmount = item.Price * cartItem.Quantity;
-                sellerWallet.Balance += incomeAmount;
-                sellerWallet.UpdatedAt = DateTime.UtcNow;
+                    buyerWallet.Balance -= totalAmount;
+                    buyerWallet.UpdatedAt = DateTime.UtcNow;
+                    await _walletRepository.UpdateAsync(buyerWallet);
 
-                await _walletRepository.UpdateAsync(sellerWallet);
-
-                item.StockQuantity -= cartItem.Quantity;
-
-                if (item.StockQuantity == 0)
-                {
-                    item.Status = ItemStatus.sold;
-                }
-
-                item.UpdatedAt = DateTime.UtcNow;
-                await _itemRepository.UpdateAsync(item);
-
-                var transaction = new Transaction
-                {
-                    BuyerId = userId,
-                    SellerId = store.OwnerId,
-                    CategoryId = item.CategoryId,
-                    ItemId = item.ItemId,
-                    Amount = incomeAmount,
-                    TransactionType = TransactionType.Purchase,
-                    Status = TransactionStatus.Completed
-                };
-                await _transactionRepository.AddAsync(transaction);
-                createdTransactionIds.Add(transaction.TransactionId);
-            }
-
-            var reportLog = new ReportLog
-            {
-                GeneratedBy = userId,
-                ReportType = ReportType.Checkout,
-                Parameters = JsonSerializer.Serialize(new
-                {
-                    UserId = userId,
-                    CartId = cart.CartId,
-                    Items = validatedItems.Select(v => new
+                    foreach (var sellerGroup in validatedItems.GroupBy(v => v.Store.OwnerId))
                     {
-                        v.Item.ItemId,
-                        v.Item.Name,
-                        v.CartItem.Quantity,
-                        UnitPrice = v.Item.Price,
-                        LineTotal = v.Item.Price * v.CartItem.Quantity,
-                        v.Store.StoreId
-                    })
-                }),
-                ResultSnapshot = JsonSerializer.Serialize(new
-                {
-                    TotalAmount = totalAmount,
-                    RemainingBalance = buyerWallet.Balance,
-                    TransactionIds = createdTransactionIds,
-                    Status = "completed"
-                }),
-                GeneratedAt = DateTime.UtcNow
-            };
-            await _reportLogRepository.AddAsync(reportLog);
+                        var sellerWallet = await _walletRepository.GetByUserIdAsync(sellerGroup.Key);
+                        if (sellerWallet == null)
+                        {
+                            throw new CheckoutFailedException($"Seller wallet not found for store owner {sellerGroup.Key}.");
+                        }
 
-            cart.Items.Clear();
-            cart.Status = CartStatus.checked_out; // can be edited if we want it to stay active for other uses or we can delete the cart entirely
-            cart.UpdatedAt = DateTime.UtcNow;
+                        decimal sellerIncome = 0m;
 
-            await _cartRepository.UpdateAsync(cart);
+                        foreach (var val in sellerGroup)
+                        {
+                            var cartItem = val.CartItem;
+                            var item = val.Item;
+                            var incomeAmount = item.Price * cartItem.Quantity;
+                            sellerIncome += incomeAmount;
+
+                            item.StockQuantity -= cartItem.Quantity;
+                            if (item.StockQuantity == 0)
+                            {
+                                item.Status = ItemStatus.sold;
+                            }
+                            item.UpdatedAt = DateTime.UtcNow;
+                            await _itemRepository.UpdateAsync(item);
+
+                            var transaction = new Transaction
+                            {
+                                BuyerId = userId,
+                                SellerId = sellerGroup.Key,
+                                CategoryId = item.CategoryId,
+                                ItemId = item.ItemId,
+                                Amount = incomeAmount,
+                                TransactionType = TransactionType.Purchase,
+                                Status = TransactionStatus.Completed
+                            };
+                            await _transactionRepository.AddAsync(transaction);
+                            createdTransactionIds.Add(transaction.TransactionId);
+                        }
+
+                        sellerWallet.Balance += sellerIncome;
+                        sellerWallet.UpdatedAt = DateTime.UtcNow;
+                        await _walletRepository.UpdateAsync(sellerWallet);
+                    }
+
+                    var reportLog = new ReportLog
+                    {
+                        GeneratedBy = userId,
+                        ReportType = ReportType.Checkout,
+                        Parameters = JsonSerializer.Serialize(new
+                        {
+                            UserId = userId,
+                            CartId = cart.CartId,
+                            Items = validatedItems.Select(v => new
+                            {
+                                v.Item.ItemId,
+                                v.Item.Name,
+                                v.CartItem.Quantity,
+                                UnitPrice = v.Item.Price,
+                                LineTotal = v.Item.Price * v.CartItem.Quantity,
+                                v.Store.StoreId
+                            })
+                        }),
+                        ResultSnapshot = JsonSerializer.Serialize(new
+                        {
+                            TotalAmount = totalAmount,
+                            RemainingBalance = buyerWallet.Balance,
+                            TransactionIds = createdTransactionIds,
+                            Status = "completed"
+                        }),
+                        GeneratedAt = DateTime.UtcNow
+                    };
+                    await _reportLogRepository.AddAsync(reportLog);
+
+                    cart.Items.Clear();
+                    cart.Status = CartStatus.checked_out;
+                    cart.UpdatedAt = DateTime.UtcNow;
+                    await _cartRepository.UpdateAsync(cart);
+                });
+            }
+            catch (CheckoutFailedException ex)
+            {
+                return BuildResponse(
+                    request.CorrelationId,
+                    "CHECKOUT_CART_FAILED",
+                    new
+                    {
+                        Success = false,
+                        Message = ex.Message
+                    });
+            }
 
             return BuildResponse(
                 request.CorrelationId,
@@ -272,6 +286,11 @@ namespace MarketPlace.Application.Commands
                 Command = command,
                 Payload = JsonSerializer.Serialize(payload)
             };
+        }
+
+        private sealed class CheckoutFailedException : Exception
+        {
+            public CheckoutFailedException(string message) : base(message) { }
         }
     }
 }

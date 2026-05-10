@@ -36,6 +36,7 @@ namespace MarketPlace.Infrastructure
             services.AddScoped<IStoreRepository, StoreRepository>();
             services.AddScoped<IReportLogRepository, ReportLogRepository>();
             services.AddScoped<IMessageRepository, MessageRepository>();
+            services.AddScoped<IUnitOfWork, UnitOfWork>();
 
             return services;
         }
